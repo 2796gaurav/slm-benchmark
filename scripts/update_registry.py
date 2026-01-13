@@ -61,8 +61,16 @@ def update_registry(submission_file: str, results_file: str, registry_file: str)
         'submitted_by': model.get('submitted_by', 'unknown')
     }
     
-    # Add to registry
-    registry['models'].append(model_entry)
+    # Add or update in registry
+    model_id = model_entry['id']
+    existing_idx = next((i for i, m in enumerate(registry['models']) if m['id'] == model_id), -1)
+    
+    if existing_idx >= 0:
+        registry['models'][existing_idx] = model_entry
+        print(f"🔄 Updated {model['name']} in registry")
+    else:
+        registry['models'].append(model_entry)
+        print(f"✅ Added {model['name']} to registry")
     
     # Re-rank models
     registry['models'].sort(key=lambda x: x['aggregate_score'], reverse=True)
