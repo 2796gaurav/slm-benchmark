@@ -226,22 +226,6 @@ jobs:
             --results results/processed/latest_benchmark.json \
             --archive-dir results/archives/
       
-      - name: Commit results
-        run: |
-          # Use submission file from artifacts
-          SUBMISSION_FILE="results/processed/submission.yaml"
-          MODEL_NAME=$(grep 'name:' "$SUBMISSION_FILE" | head -1 | cut -d':' -f2 | xargs)
-          
-          git config user.name "SLM Benchmark Bot"
-          git config user.email "bot@slm-benchmark.dev"
-          
-          git add models/registry.json
-          git add results/
-          git add website/assets/data/
-          
-          git commit -m "Add benchmark results for $MODEL_NAME"
-          git push origin main
-      
       - name: Merge PR
         uses: actions/github-script@v7
         with:
@@ -252,6 +236,28 @@ jobs:
               pull_number: context.issue.number,
               merge_method: 'squash'
             });
+      
+      - name: Commit results
+        run: |
+          # Use submission file from artifacts
+          SUBMISSION_FILE="results/processed/submission.yaml"
+          MODEL_NAME=$(grep 'name:' "$SUBMISSION_FILE" | head -1 | cut -d':' -f2 | xargs)
+          
+          git config user.name "SLM Benchmark Bot"
+          git config user.email "bot@slm-benchmark.dev"
+          
+          # Essential sync: fetch and checkout main before committing
+          # This avoids the "non-fast-forward" error after merging the PR above
+          git fetch origin main
+          git checkout main
+          git pull origin main
+          
+          git add models/registry.json
+          git add results/
+          git add website/assets/data/
+          
+          git commit -m "Add benchmark results for $MODEL_NAME"
+          git push origin main
       
       - name: Close PR with success comment
         uses: actions/github-script@v7
