@@ -230,12 +230,21 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              merge_method: 'squash'
-            });
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                merge_method: 'squash'
+              });
+              console.log('PR merged successfully');
+            } catch (error) {
+              if (error.status === 405 || error.status === 409) {
+                console.log('PR already merged or conflict (ignoring): ' + error.message);
+              } else {
+                throw error;
+              }
+            }
       
       - name: Commit results
         run: |
@@ -246,29 +255,44 @@ jobs:
           git config user.name "SLM Benchmark Bot"
           git config user.email "bot@slm-benchmark.dev"
           
-          # Essential sync: fetch and checkout main before committing
-          # This avoids the "non-fast-forward" error after merging the PR above
+          # Bulletproof sync
           git fetch origin main
-          git checkout main
-          git pull origin main
+          git checkout -B main origin/main
           
           git add models/registry.json
           git add results/
           git add website/assets/data/
           
-          git commit -m "Add benchmark results for $MODEL_NAME"
-          git push origin main
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add benchmark results for $MODEL_NAME"
+            # Final rebase to handle any concurrent merges
+            git pull --rebase origin main
+            git push origin main
+          fi
       
       - name: Close PR with success comment
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '🎉 Results published to [leaderboard](https://2796gaurav.github.io/slm-benchmark)!\n\nThank you for your contribution!'
-            });
+            try {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: '🎉 Results published to [leaderboard](https://2796gaurav.github.io/slm-benchmark)!\n\nThank you for your contribution!'
+              });
+              // Label the PR as published
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['published']
+              });
+            } catch (e) {
+              console.log('Failed to comment/label PR: ' + e.message);
+            }
       
       - name: Trigger website deployment
         run: |
