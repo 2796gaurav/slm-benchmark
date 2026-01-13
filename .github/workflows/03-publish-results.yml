@@ -1,0 +1,109 @@
+name: Publish Results
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  pages: write
+  id-token: write
+
+jobs:
+  check_permission:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/push-results')
+    runs-on: ubuntu-latest
+    outputs:
+      authorized: ${{ steps.check.outputs.authorized }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check authorization
+        id: check
+        run: |
+          python .github/scripts/check_permissions.py \
+            --commenter ${{ github.event.comment.user.login }} \
+            --owner ${{ github.repository_owner }} \
+            --output authorized.json
+          
+          authorized=$(cat authorized.json | jq -r '.authorized')
+          echo "authorized=$authorized" >> $GITHUB_OUTPUT
+  
+  publish:
+    needs: check_permission
+    if: needs.check_permission.outputs.authorized == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Download benchmark artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results
+          path: results/
+      
+      - name: Update registry
+        run: |
+          python scripts/update_registry.py \
+            --submission models/submissions/*.yaml \
+            --results results/processed/latest_benchmark.json \
+            --registry models/registry.json
+      
+      - name: Update leaderboard data
+        run: |
+          python scripts/update_website.py \
+            --registry models/registry.json \
+            --output website/assets/data/leaderboard.json
+      
+      - name: Archive results
+        run: |
+          python scripts/archive_results.py \
+            --results results/processed/latest_benchmark.json \
+            --archive-dir results/archives/
+      
+      - name: Commit results
+        run: |
+          git config user.name "SLM Benchmark Bot"
+          git config user.email "bot@slm-benchmark.dev"
+          
+          git add models/registry.json
+          git add results/
+          git add website/assets/data/
+          
+          git commit -m "Add benchmark results for $(cat models/submissions/*.yaml | grep 'name:' | head -1 | cut -d':' -f2 | xargs)"
+          git push origin main
+      
+      - name: Merge PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash'
+            });
+      
+      - name: Close PR with success comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '🎉 Results published to [leaderboard](https://2796gaurav.github.io/slm-benchmark)!\n\nThank you for your contribution!'
+            });
+      
+      - name: Trigger website deployment
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -d '{"event_type":"deploy-website"}'

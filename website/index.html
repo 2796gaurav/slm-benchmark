@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLM Benchmark - Unbiased Small Language Model Evaluation</title>
+    <meta name="description" content="Comprehensive, unbiased benchmarking platform for Small Language Models (1M-3B parameters)">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #7c3aed;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Filters */
+        .filters {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        select, input[type="search"] {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            min-width: 150px;
+        }
+
+        input[type="search"] {
+            min-width: 300px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tag:hover, .tag.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Leaderboard Table */
+        .leaderboard {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        th:hover {
+            background: rgba(37, 99, 235, 0.2);
+        }
+
+        th.sortable::after {
+            content: ' ↕';
+            opacity: 0.5;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .rank {
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .rank-1 { color: #fbbf24; }
+        .rank-2 { color: #94a3b8; }
+        .rank-3 { color: #cd7f32; }
+
+        .model-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .model-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .model-link:hover {
+            text-decoration: underline;
+        }
+
+        .score {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-quant {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--secondary);
+        }
+
+        .badge-size {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent);
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            input[type="search"] {
+                min-width: auto;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">⚡ SLM Benchmark</div>
+                <ul class="nav-links">
+                    <li><a href="#leaderboard">Leaderboard</a></li>
+                    <li><a href="methodology.html">Methodology</a></li>
+                    <li><a href="submit.html">Submit Model</a></li>
+                    <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="hero">
+                <h1>Unbiased SLM Benchmark</h1>
+                <p>Comprehensive 360° evaluation platform for Small Language Models (1M-3B parameters). 
+                   Fully automated, transparent, and reproducible benchmarks for edge devices and real-world applications.</p>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="model-count">0</div>
+                        <div class="stat-label">Models Tested</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">10+</div>
+                        <div class="stat-label">Benchmark Tasks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">100%</div>
+                        <div class="stat-label">Open Source</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Cost to Use</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="search">Search</label>
+                        <input type="search" id="search" placeholder="Search models...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sort">Sort By</label>
+                        <select id="sort">
+                            <option value="rank">Rank</option>
+                            <option value="aggregate">Aggregate Score</option>
+                            <option value="reasoning">Reasoning</option>
+                            <option value="coding">Coding</option>
+                            <option value="math">Math</option>
+                            <option value="parameters">Parameters</option>
+                            <option value="date">Date Added</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="size-filter">Size</label>
+                        <select id="size-filter">
+                            <option value="all">All Sizes</option>
+                            <option value="tiny">Tiny (< 100M)</option>
+                            <option value="small">Small (100M-500M)</option>
+                            <option value="medium">Medium (500M-1B)</option>
+                            <option value="large">Large (1B-3B)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="quant-filter">Quantization</label>
+                        <select id="quant-filter">
+                            <option value="all">All</option>
+                            <option value="fp16">FP16</option>
+                            <option value="q8">Q8_0</option>
+                            <option value="q4">Q4_K_M</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <label style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Categories</label>
+                    <div class="tags" id="category-tags"></div>
+                </div>
+            </section>
+
+            <section id="leaderboard" class="leaderboard">
+                <div class="table-container">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 1rem; color: var(--text-muted);">Loading leaderboard...</p>
+                    </div>
+                    
+                    <table id="leaderboard-table" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="rank">Rank</th>
+                                <th class="sortable" data-sort="model">Model</th>
+                                <th class="sortable" data-sort="parameters">Parameters</th>
+                                <th class="sortable" data-sort="aggregate">Aggregate</th>
+                                <th class="sortable" data-sort="reasoning">Reasoning</th>
+                                <th class="sortable" data-sort="coding">Coding</th>
+                                <th class="sortable" data-sort="math">Math</th>
+                                <th class="sortable" data-sort="language">Language</th>
+                                <th class="sortable" data-sort="edge">Edge</th>
+                                <th>Quantization</th>
+                                <th>Links</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="submit.html" class="btn">Submit Your Model</a>
+                <a href="methodology.html" class="btn btn-secondary" style="margin-left: 1rem;">Learn More</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
+                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
+                <a href="methodology.html">Methodology</a>
+                <a href="submit.html">Submit Model</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/leaderboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+name: Validate Model Submission
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    paths:
+      - 'models/submissions/*.yaml'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install pyyaml jsonschema requests huggingface_hub
+      
+      - name: Rate limit check
+        id: rate_limit
+        run: |
+          python .github/scripts/rate_limit_check.py \
+            --submitter ${{ github.event.pull_request.user.login }} \
+            --check-frequency
+      
+      - name: Validate submission
+        id: validate
+        run: |
+          python .github/scripts/validate_submission.py \
+            --pr-number ${{ github.event.pull_request.number }} \
+            --submission-file models/submissions/*.yaml \
+            --output validation_report.json
+      
+      - name: Check model exists on HF
+        run: |
+          python .github/scripts/check_hf_model.py \
+            --submission-file models/submissions/*.yaml
+      
+      - name: Verify parameters <3B
+        run: |
+          python .github/scripts/verify_size.py \
+            --submission-file models/submissions/*.yaml \
+            --max-params 3000000000
+      
+      - name: Check for duplicates
+        run: |
+          python .github/scripts/check_duplicates.py \
+            --submission-file models/submissions/*.yaml \
+            --registry models/registry.json
+      
+      - name: Estimate cost & time
+        id: estimate
+        run: |
+          python .github/scripts/estimate_benchmark_cost.py \
+            --submission-file models/submissions/*.yaml \
+            --output cost_estimate.json
+      
+      - name: Comment validation results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('validation_report.json', 'utf8'));
+            const cost = JSON.parse(fs.readFileSync('cost_estimate.json', 'utf8'));
+            
+            let comment = `## 🔍 Validation Report\n\n`;
+            
+            if (report.valid) {
+              comment += `✅ **Validation Passed**\n\n`;
+              comment += `### Model Details\n`;
+              comment += `- **Name**: ${report.model.name}\n`;
+              comment += `- **Parameters**: ${report.model.parameters}\n`;
+              comment += `- **License**: ${report.model.license}\n`;
+              comment += `- **HF Repo**: [${report.model.hf_repo}](https://huggingface.co/${report.model.hf_repo})\n\n`;
+              comment += `### Estimated Resources\n`;
+              comment += `- **GPU Time**: ~${cost.estimated_minutes} minutes\n`;
+              comment += `- **Tests**: ${cost.num_tests} benchmark tasks\n`;
+              comment += `- **Quantizations**: ${cost.num_quants} formats\n\n`;
+              comment += `---\n\n`;
+              comment += `✨ Ready for benchmark! Maintainer can now comment \`/test-benchmark\` to proceed.\n`;
+            } else {
+              comment += `❌ **Validation Failed**\n\n`;
+              comment += `### Issues Found:\n`;
+              report.errors.forEach(error => {
+                comment += `- ❌ ${error}\n`;
+              });
+              comment += `\n### Warnings:\n`;
+              report.warnings.forEach(warning => {
+                comment += `- ⚠️ ${warning}\n`;
+              });
+              comment += `\n---\n\n`;
+              comment += `Please fix the issues above and update your PR.\n`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Set PR label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('validation_report.json', 'utf8'));
+            
+            const label = report.valid ? 'validated' : 'needs-changes';
+            
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: [label]
+            });

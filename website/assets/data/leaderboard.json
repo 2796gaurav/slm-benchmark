@@ -1,0 +1,271 @@
+{
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2026-01-13T00:00:00Z",
+      "total_models": 8,
+      "total_benchmarks": 8
+    },
+    "models": [
+      {
+        "id": "phi-2",
+        "rank": 1,
+        "name": "Phi-2",
+        "family": "Phi",
+        "version": "2.0",
+        "hf_repo": "microsoft/phi-2",
+        "parameters": "2.7B",
+        "architecture": "phi",
+        "context_length": 2048,
+        "license": "MIT",
+        "aggregate_score": 74.2,
+        "scores": {
+          "reasoning": 68.5,
+          "coding": 52.3,
+          "math": 48.7,
+          "language": 73.4,
+          "edge": 82.1,
+          "safety": 88.3
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"},
+          {"name": "Q8_0", "format": "gguf"}
+        ],
+        "categories": ["reasoning", "coding", "math", "edge-optimized"],
+        "date_added": "2026-01-10",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "smollm2-1.7b",
+        "rank": 2,
+        "name": "SmolLM2-1.7B",
+        "family": "SmolLM",
+        "version": "2.0",
+        "hf_repo": "HuggingFaceTB/SmolLM2-1.7B",
+        "parameters": "1.7B",
+        "architecture": "llama",
+        "context_length": 8192,
+        "license": "Apache-2.0",
+        "aggregate_score": 71.8,
+        "scores": {
+          "reasoning": 65.2,
+          "coding": 48.9,
+          "math": 45.3,
+          "language": 70.8,
+          "edge": 84.5,
+          "safety": 86.7
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"},
+          {"name": "Q8_0", "format": "gguf"}
+        ],
+        "categories": ["reasoning", "coding", "edge-optimized", "long-context"],
+        "date_added": "2026-01-10",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "qwen2.5-1.5b",
+        "rank": 3,
+        "name": "Qwen2.5-1.5B",
+        "family": "Qwen",
+        "version": "2.5",
+        "hf_repo": "Qwen/Qwen2.5-1.5B",
+        "parameters": "1.5B",
+        "architecture": "qwen2",
+        "context_length": 32768,
+        "license": "Apache-2.0",
+        "aggregate_score": 70.5,
+        "scores": {
+          "reasoning": 64.8,
+          "coding": 47.1,
+          "math": 44.6,
+          "language": 69.3,
+          "edge": 83.2,
+          "safety": 87.9
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"},
+          {"name": "Q8_0", "format": "gguf"}
+        ],
+        "categories": ["reasoning", "coding", "multilingual", "long-context"],
+        "date_added": "2026-01-10",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "minicpm-2b",
+        "rank": 4,
+        "name": "MiniCPM-2B",
+        "family": "MiniCPM",
+        "version": "1.0",
+        "hf_repo": "openbmb/MiniCPM-2B-sft-bf16",
+        "parameters": "2.4B",
+        "architecture": "minicpm",
+        "context_length": 4096,
+        "license": "Apache-2.0",
+        "aggregate_score": 68.9,
+        "scores": {
+          "reasoning": 62.3,
+          "coding": 45.7,
+          "math": 43.2,
+          "language": 67.8,
+          "edge": 81.7,
+          "safety": 85.6
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"}
+        ],
+        "categories": ["reasoning", "multilingual", "instruction-following"],
+        "date_added": "2026-01-11",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "qwen2.5-0.5b",
+        "rank": 5,
+        "name": "Qwen2.5-0.5B",
+        "family": "Qwen",
+        "version": "2.5",
+        "hf_repo": "Qwen/Qwen2.5-0.5B",
+        "parameters": "0.5B",
+        "architecture": "qwen2",
+        "context_length": 32768,
+        "license": "Apache-2.0",
+        "aggregate_score": 62.4,
+        "scores": {
+          "reasoning": 56.7,
+          "coding": 38.2,
+          "math": 35.8,
+          "language": 61.3,
+          "edge": 89.4,
+          "safety": 82.1
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"},
+          {"name": "Q8_0", "format": "gguf"}
+        ],
+        "categories": ["edge-optimized", "multilingual", "long-context"],
+        "date_added": "2026-01-11",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "smollm2-360m",
+        "rank": 6,
+        "name": "SmolLM2-360M",
+        "family": "SmolLM",
+        "version": "2.0",
+        "hf_repo": "HuggingFaceTB/SmolLM2-360M",
+        "parameters": "360M",
+        "architecture": "llama",
+        "context_length": 8192,
+        "license": "Apache-2.0",
+        "aggregate_score": 59.3,
+        "scores": {
+          "reasoning": 52.8,
+          "coding": 34.6,
+          "math": 31.2,
+          "language": 58.9,
+          "edge": 91.2,
+          "safety": 80.4
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"},
+          {"name": "Q8_0", "format": "gguf"}
+        ],
+        "categories": ["edge-optimized", "long-context"],
+        "date_added": "2026-01-11",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "smollm2-135m",
+        "rank": 7,
+        "name": "SmolLM2-135M",
+        "family": "SmolLM",
+        "version": "2.0",
+        "hf_repo": "HuggingFaceTB/SmolLM2-135M",
+        "parameters": "135M",
+        "architecture": "llama",
+        "context_length": 8192,
+        "license": "Apache-2.0",
+        "aggregate_score": 51.7,
+        "scores": {
+          "reasoning": 45.2,
+          "coding": 28.3,
+          "math": 24.7,
+          "language": 52.6,
+          "edge": 93.8,
+          "safety": 76.9
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"}
+        ],
+        "categories": ["edge-optimized"],
+        "date_added": "2026-01-12",
+        "submitted_by": "benchmark-team"
+      },
+      {
+        "id": "tinyllama-1.1b",
+        "rank": 8,
+        "name": "TinyLlama-1.1B",
+        "family": "TinyLlama",
+        "version": "1.1",
+        "hf_repo": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "parameters": "1.1B",
+        "architecture": "llama",
+        "context_length": 2048,
+        "license": "Apache-2.0",
+        "aggregate_score": 48.9,
+        "scores": {
+          "reasoning": 42.7,
+          "coding": 26.8,
+          "math": 22.4,
+          "language": 49.3,
+          "edge": 87.6,
+          "safety": 74.5
+        },
+        "quantizations": [
+          {"name": "FP16", "format": "safetensors"},
+          {"name": "Q4_K_M", "format": "gguf"}
+        ],
+        "categories": ["edge-optimized", "chat"],
+        "date_added": "2026-01-12",
+        "submitted_by": "benchmark-team"
+      }
+    ],
+    "categories": {
+      "reasoning": {
+        "name": "Reasoning",
+        "description": "Logical reasoning and common sense",
+        "tasks": ["MMLU", "ARC-Challenge", "HellaSwag", "TruthfulQA"]
+      },
+      "coding": {
+        "name": "Coding",
+        "description": "Code generation and understanding",
+        "tasks": ["HumanEval", "MBPP"]
+      },
+      "math": {
+        "name": "Mathematics",
+        "description": "Mathematical reasoning and problem solving",
+        "tasks": ["GSM8K", "MATH"]
+      },
+      "language": {
+        "name": "Language Understanding",
+        "description": "Natural language comprehension",
+        "tasks": ["BoolQ", "PIQA", "WinoGrande"]
+      },
+      "edge": {
+        "name": "Edge Performance",
+        "description": "Efficiency on edge devices",
+        "metrics": ["Latency", "Throughput", "Memory", "Energy"]
+      },
+      "safety": {
+        "name": "Safety & Bias",
+        "description": "Toxicity and bias measurements",
+        "metrics": ["Toxicity Score", "Bias Score", "Truthfulness"]
+      }
+    }
+  }

@@ -1,0 +1,121 @@
+name: Run Benchmark Tests
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check_permission:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/test-benchmark')
+    runs-on: ubuntu-latest
+    outputs:
+      authorized: ${{ steps.check.outputs.authorized }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check if commenter is owner
+        id: check
+        run: |
+          python .github/scripts/check_permissions.py \
+            --commenter ${{ github.event.comment.user.login }} \
+            --owner ${{ github.repository_owner }} \
+            --output authorized.json
+          
+          authorized=$(cat authorized.json | jq -r '.authorized')
+          echo "authorized=$authorized" >> $GITHUB_OUTPUT
+  
+  run_benchmark:
+    needs: check_permission
+    if: needs.check_permission.outputs.authorized == 'true'
+    runs-on: [self-hosted, gpu]  # Use self-hosted runner with GPU
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      
+      - name: Set up environment
+        run: |
+          docker-compose up -d benchmark-runner
+      
+      - name: Run comprehensive benchmark
+        id: benchmark
+        run: |
+          docker exec benchmark-runner python benchmarks/evaluation/run_benchmark.py \
+            --submission-file models/submissions/*.yaml \
+            --output-dir results/raw/ \
+            --save-logs \
+            --deterministic \
+            --seed 42 \
+            --timestamp $(date +%Y%m%d_%H%M%S) \
+            --full-report
+        continue-on-error: true
+      
+      - name: Process results
+        run: |
+          python scripts/generate_report.py \
+            --results-dir results/raw/ \
+            --output results/processed/latest_benchmark.json
+      
+      - name: Generate visualizations
+        run: |
+          python scripts/generate_charts.py \
+            --results results/processed/latest_benchmark.json \
+            --output results/charts/
+      
+      - name: Comment results summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('results/processed/latest_benchmark.json', 'utf8'));
+            
+            let comment = `## 🎯 Benchmark Results\n\n`;
+            comment += `### Overall Performance\n\n`;
+            comment += `| Metric | Score | Rank |\n`;
+            comment += `|--------|-------|------|\n`;
+            
+            Object.entries(results.aggregate_scores).forEach(([metric, data]) => {
+              comment += `| ${metric} | ${data.score.toFixed(2)} | #${data.rank} |\n`;
+            });
+            
+            comment += `\n### Detailed Breakdown\n\n`;
+            comment += `<details>\n<summary>Click to expand</summary>\n\n`;
+            comment += `\`\`\`json\n${JSON.stringify(results.detailed, null, 2)}\n\`\`\`\n\n`;
+            comment += `</details>\n\n`;
+            comment += `---\n\n`;
+            comment += `✅ Benchmark completed successfully!\n`;
+            comment += `Maintainer can now comment \`/push-results\` to publish to leaderboard.\n`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            results/raw/
+            results/processed/
+            results/charts/
+          retention-days: 90
+  
+  cleanup:
+    needs: run_benchmark
+    if: always()
+    runs-on: [self-hosted, gpu]
+    steps:
+      - name: Clean up containers
+        run: |
+          docker-compose down
+          docker system prune -f
