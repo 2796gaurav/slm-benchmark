@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   triage:
-    if: github.event.issue.pull_request
+    if: github.event.issue.pull_request && (contains(github.event.comment.body, '/test-benchmark') || contains(github.event.comment.body, '/push-results'))
     runs-on: ubuntu-latest
     outputs:
       authorized: ${{ steps.check.outputs.authorized }}
@@ -90,12 +90,17 @@ jobs:
             --seed 42 \
             --timestamp $TIMESTAMP \
             --limit 5
-      
+
       - name: Process results
         run: |
           python scripts/generate_report.py \
             --results-dir results/raw/ \
             --output results/processed/latest_benchmark.json
+          
+          # Copy submission file to processed folder so it's uploaded with artifacts
+          # This ensures the publish job has access to the exact submission file used
+          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
+          cp "$SUBMISSION_FILE" results/processed/submission.yaml
       
       - name: Generate visualizations
         run: |
@@ -195,9 +200,14 @@ jobs:
       
       - name: Update registry
         run: |
-          # Use find to properly resolve the wildcard
-          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
+          # Use submission file from artifacts (copied during benchmark step)
+          SUBMISSION_FILE="results/processed/submission.yaml"
           echo "Using submission file: $SUBMISSION_FILE"
+          
+          if [ ! -f "$SUBMISSION_FILE" ]; then
+            echo "::error::Submission file not found in artifacts. Benchmark result might be old."
+            exit 1
+          fi
           
           python scripts/update_registry.py \
             --submission "$SUBMISSION_FILE" \
@@ -218,8 +228,8 @@ jobs:
       
       - name: Commit results
         run: |
-          # Use find/xargs safely to get model name
-          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
+          # Use submission file from artifacts
+          SUBMISSION_FILE="results/processed/submission.yaml"
           MODEL_NAME=$(grep 'name:' "$SUBMISSION_FILE" | head -1 | cut -d':' -f2 | xargs)
           
           git config user.name "SLM Benchmark Bot"
