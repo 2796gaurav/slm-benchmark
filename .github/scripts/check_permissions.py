@@ -54,3 +54,6 @@ def main_check_permissions():
         print(result['message'])
     
     sys.exit(0 if result['authorized'] else 1)
+
+if __name__ == '__main__':
+    main_check_permissions()
