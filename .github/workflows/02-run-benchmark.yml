@@ -33,29 +33,33 @@ jobs:
   run_benchmark:
     needs: check_permission
     if: needs.check_permission.outputs.authorized == 'true'
-    runs-on: [self-hosted, gpu]  # Use self-hosted runner with GPU
+    runs-on: ubuntu-latest
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     
     steps:
       - uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
       
-      - name: Set up environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
         run: |
-          docker-compose up -d benchmark-runner
-      
-      - name: Run comprehensive benchmark
+          python -m pip install --upgrade pip
+          pip install modal
+
+      - name: Run benchmark on Modal T4
         id: benchmark
         run: |
-          docker exec benchmark-runner python benchmarks/evaluation/run_benchmark.py \
-            --submission-file models/submissions/*.yaml \
-            --output-dir results/raw/ \
-            --save-logs \
-            --deterministic \
-            --seed 42 \
-            --timestamp $(date +%Y%m%d_%H%M%S) \
-            --full-report
-        continue-on-error: true
+          # The modal_benchmark.py script handles wildcard expansion and Modal execution
+          modal run scripts/modal_benchmark.py \
+            --submission-file "models/submissions/*.yaml" \
+            --output-dir results/raw/
       
       - name: Process results
         run: |
@@ -74,6 +78,11 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            // Ensure the file exists before reading
+            if (!fs.existsSync('results/processed/latest_benchmark.json')) {
+              console.log('Results file not found');
+              return;
+            }
             const results = JSON.parse(fs.readFileSync('results/processed/latest_benchmark.json', 'utf8'));
             
             let comment = `## 🎯 Benchmark Results\n\n`;
@@ -81,13 +90,17 @@ jobs:
             comment += `| Metric | Score | Rank |\n`;
             comment += `|--------|-------|------|\n`;
             
-            Object.entries(results.aggregate_scores).forEach(([metric, data]) => {
-              comment += `| ${metric} | ${data.score.toFixed(2)} | #${data.rank} |\n`;
-            });
+            if (results.aggregate_scores) {
+              Object.entries(results.aggregate_scores).forEach(([metric, data]) => {
+                comment += `| ${metric} | ${data.score.toFixed(2)} | #${data.rank} |\n`;
+              });
+            } else {
+              comment += `| N/A | 0.00 | - |\n`;
+            }
             
             comment += `\n### Detailed Breakdown\n\n`;
             comment += `<details>\n<summary>Click to expand</summary>\n\n`;
-            comment += `\`\`\`json\n${JSON.stringify(results.detailed, null, 2)}\n\`\`\`\n\n`;
+            comment += `\`\`\`json\n${JSON.stringify(results.detailed || {}, null, 2)}\n\`\`\`\n\n`;
             comment += `</details>\n\n`;
             comment += `---\n\n`;
             comment += `✅ Benchmark completed successfully!\n`;
@@ -113,9 +126,7 @@ jobs:
   cleanup:
     needs: run_benchmark
     if: always()
-    runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest
     steps:
-      - name: Clean up containers
-        run: |
-          docker-compose down
-          docker system prune -f
+      - name: No-op cleanup
+        run: echo "Modal resources are ephemeral and self-cleaned."

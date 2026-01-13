@@ -1,0 +1,37 @@
+model:
+  # Basic Information
+  name: ""  # e.g., "SmolLM2-1.7B"
+  family: ""  # e.g., "SmolLM"
+  version: ""  # e.g., "2.0"
+  
+  # Hugging Face
+  hf_repo: ""  # e.g., "HuggingFaceTB/SmolLM2-1.7B"
+  hf_revision: "main"
+  
+  # Specifications
+  parameters: ""  # e.g., "1.7B" (must be ≤3B)
+  architecture: ""  # e.g., "llama", "phi", "qwen"
+  context_length: 0  # e.g., 8192
+  license: "Apache-2.0"
+  
+  # Quantizations to test
+  quantizations:
+    - name: "FP16"
+      format: "safetensors"
+    # Add more quantizations...
+  
+  # Categories
+  categories:
+    - "reasoning"
+    # Add more categories...
+  
+  # Submission Info
+  submitted_by: "your-github-username"
+  submitted_date: "2026-01-13"
+  contact: "your-email@example.com"
+  
+  # Optional: Testing Preferences
+  testing:
+    priority: "standard"
+    skip_safety: false
+    edge_devices: ["cpu", "gpu"]

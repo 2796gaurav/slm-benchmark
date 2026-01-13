@@ -185,7 +185,7 @@ slm-benchmark/
 ### Deterministic Testing
 - Fixed random seed: `42`
 - Controlled environment: Docker containers
-- Identical hardware: Self-hosted runners with NVIDIA GPUs
+- Identical hardware: **Modal.com T4 GPUs** (Standardized Environment)
 - Reproducible results: All parameters logged
 
 ### Scoring System

@@ -48,7 +48,10 @@ class BenchmarkConfig:
     seed: int = 42
     deterministic: bool = True
     edge_tests: bool = True
+    deterministic: bool = True
+    edge_tests: bool = True
     safety_tests: bool = True
+    limit: int = None  # Limit number of samples per task
 
 
 @dataclass
@@ -163,7 +166,8 @@ class SLMBenchmark:
             tasks=tasks,
             num_fewshot=self.config.num_fewshot,
             batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu'
+            device='cuda' if torch.cuda.is_available() else 'cpu',
+            limit=self.config.limit
         )
         
         return results['results']
@@ -179,7 +183,8 @@ class SLMBenchmark:
             tasks=tasks,
             num_fewshot=self.config.num_fewshot,
             batch_size=1,  # Coding tasks need batch_size=1
-            device='cuda' if torch.cuda.is_available() else 'cpu'
+            device='cuda' if torch.cuda.is_available() else 'cpu',
+            limit=self.config.limit
         )
         
         return results['results']
@@ -195,7 +200,8 @@ class SLMBenchmark:
             tasks=tasks,
             num_fewshot=self.config.num_fewshot,
             batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu'
+            device='cuda' if torch.cuda.is_available() else 'cpu',
+            limit=self.config.limit
         )
         
         return results['results']
@@ -215,7 +221,8 @@ class SLMBenchmark:
             tasks=tasks,
             num_fewshot=self.config.num_fewshot,
             batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu'
+            device='cuda' if torch.cuda.is_available() else 'cpu',
+            limit=self.config.limit
         )
         
         return results['results']
@@ -359,6 +366,7 @@ def main():
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--timestamp', type=str)
     parser.add_argument('--full-report', action='store_true')
+    parser.add_argument('--limit', type=int, help='Limit number of samples per task for testing')
     
     args = parser.parse_args()
     
@@ -379,7 +387,8 @@ def main():
             quantization=quant['name'],
             tasks=model_info.get('categories', []),
             seed=args.seed,
-            deterministic=args.deterministic
+            deterministic=args.deterministic,
+            limit=args.limit
         )
         
         benchmark = SLMBenchmark(config)
