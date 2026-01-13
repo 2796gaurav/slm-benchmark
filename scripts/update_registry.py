@@ -7,6 +7,20 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
+def _average_score(score_dict):
+    """Calculate mean score from dictionary values"""
+    if not score_dict:
+        return 0.0
+    
+    values = []
+    for v in score_dict.values():
+        if isinstance(v, dict) and 'acc' in v:
+            values.append(v['acc'] * 100)
+        elif isinstance(v, (int, float)):
+            values.append(float(v))
+    
+    return sum(values) / len(values) if values else 0.0
+
 def update_registry(submission_file: str, results_file: str, registry_file: str):
     # Load submission
     with open(submission_file, 'r') as f:
@@ -33,7 +47,14 @@ def update_registry(submission_file: str, results_file: str, registry_file: str)
         'parameters': model['parameters'],
         'license': model['license'],
         'aggregate_score': results['aggregate_score'],
-        'scores': results['scores'],
+        'scores': {
+            'reasoning': _average_score(results.get('reasoning_scores', {})),
+            'coding': _average_score(results.get('coding_scores', {})),
+            'math': _average_score(results.get('math_scores', {})),
+            'language': _average_score(results.get('language_scores', {})),
+            'edge': _average_score(results.get('edge_metrics', {})),
+            'safety': _average_score(results.get('safety_scores', {}))
+        },
         'quantizations': model['quantizations'],
         'categories': model.get('categories', []),
         'date_added': datetime.now().isoformat()[:10],

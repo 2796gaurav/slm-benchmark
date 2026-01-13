@@ -184,7 +184,8 @@ class SLMBenchmark:
             num_fewshot=self.config.num_fewshot,
             batch_size=1,  # Coding tasks need batch_size=1
             device='cuda' if torch.cuda.is_available() else 'cpu',
-            limit=self.config.limit
+            limit=self.config.limit,
+            confirm_run_unsafe_code=True  # Required for executing coding benchmarks
         )
         
         return results['results']

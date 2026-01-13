@@ -197,7 +197,7 @@ class SubmissionValidator:
             
             # Validate format
             if 'format' in quant:
-                valid_formats = ['safetensors', 'gguf', 'onnx']
+                valid_formats = ['safetensors', 'gguf', 'onnx', 'transformers']
                 if quant['format'] not in valid_formats:
                     self.errors.append(
                         f"Quantization {idx} has invalid format '{quant['format']}'. "
