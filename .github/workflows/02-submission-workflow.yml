@@ -75,11 +75,15 @@ jobs:
           CUDA_VISIBLE_DEVICES: ""
           HF_ALLOW_CODE_EVAL: "1"
         run: |
+          # Use find to properly resolve the wildcard to a single file path
+          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
           TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           mkdir -p results/raw
           
+          echo "Using submission file: $SUBMISSION_FILE"
+          
           python benchmarks/evaluation/run_benchmark.py \
-            --submission-file "models/submissions/*.yaml" \
+            --submission-file "$SUBMISSION_FILE" \
             --output-dir results/raw/ \
             --save-logs \
             --deterministic \
@@ -166,7 +170,10 @@ jobs:
       
       - name: Update registry
         run: |
+          # Use find to properly resolve the wildcard
           SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
+          echo "Using submission file: $SUBMISSION_FILE"
+          
           python scripts/update_registry.py \
             --submission "$SUBMISSION_FILE" \
             --results results/processed/latest_benchmark.json \
@@ -186,6 +193,10 @@ jobs:
       
       - name: Commit results
         run: |
+          # Use find/xargs safely to get model name
+          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
+          MODEL_NAME=$(grep 'name:' "$SUBMISSION_FILE" | head -1 | cut -d':' -f2 | xargs)
+          
           git config user.name "SLM Benchmark Bot"
           git config user.email "bot@slm-benchmark.dev"
           
@@ -193,7 +204,7 @@ jobs:
           git add results/
           git add website/assets/data/
           
-          git commit -m "Add benchmark results for $(cat models/submissions/*.yaml | grep 'name:' | head -1 | cut -d':' -f2 | xargs)"
+          git commit -m "Add benchmark results for $MODEL_NAME"
           git push origin main
       
       - name: Merge PR
