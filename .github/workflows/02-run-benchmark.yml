@@ -28,6 +28,7 @@ jobs:
             --output authorized.json
           
           authorized=$(cat authorized.json | jq -r '.authorized')
+          echo "DEBUG: authorized value is '$authorized'"
           echo "authorized=$authorized" >> $GITHUB_OUTPUT
   
   run_benchmark:
