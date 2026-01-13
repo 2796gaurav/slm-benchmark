@@ -181,7 +181,7 @@ class SLMBenchmark:
         results = evaluator.simple_evaluate(
             model=model,
             tasks=tasks,
-            num_fewshot=self.config.num_fewshot,
+            num_fewshot=0, # Coding tasks usually differ in fewshot support, safer to use 0
             batch_size=1,  # Coding tasks need batch_size=1
             device='cuda' if torch.cuda.is_available() else 'cpu',
             limit=self.config.limit,
@@ -420,6 +420,9 @@ def main():
     }
     
     summary_file = Path(args.output_dir) / model_info['name'] / args.timestamp / 'summary.json'
+    # Ensure directory exists even if benchmark failed
+    summary_file.parent.mkdir(parents=True, exist_ok=True)
+    
     with open(summary_file, 'w') as f:
         json.dump(summary, f, indent=2)
     
