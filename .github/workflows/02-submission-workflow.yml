@@ -166,8 +166,9 @@ jobs:
       
       - name: Update registry
         run: |
+          SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
           python scripts/update_registry.py \
-            --submission models/submissions/*.yaml \
+            --submission "$SUBMISSION_FILE" \
             --results results/processed/latest_benchmark.json \
             --registry models/registry.json
       
