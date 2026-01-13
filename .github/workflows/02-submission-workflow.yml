@@ -225,17 +225,6 @@ jobs:
           python scripts/archive_results.py \
             --results results/processed/latest_benchmark.json \
             --archive-dir results/archives/
-
-      - name: Merge PR
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              merge_method: 'squash'
-            });
       
       - name: Commit results
         run: |
@@ -246,17 +235,23 @@ jobs:
           git config user.name "SLM Benchmark Bot"
           git config user.email "bot@slm-benchmark.dev"
           
-          # Force checkout of main and strict sync
-          git fetch origin main
-          git checkout -B main origin/main
-          git pull origin main
-          
           git add models/registry.json
           git add results/
           git add website/assets/data/
           
           git commit -m "Add benchmark results for $MODEL_NAME"
           git push origin main
+      
+      - name: Merge PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash'
+            });
       
       - name: Close PR with success comment
         uses: actions/github-script@v7
