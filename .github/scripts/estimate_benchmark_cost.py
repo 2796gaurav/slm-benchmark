@@ -72,3 +72,5 @@ def main_estimate_cost():
     
     sys.exit(0)
 
+if __name__ == "__main__":
+    main_estimate_cost()
