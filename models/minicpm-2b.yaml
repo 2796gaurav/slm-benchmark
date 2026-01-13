@@ -1,0 +1,17 @@
+name: "MiniCPM-2B-sft-bf16"
+hf_model_id: "openbmb/MiniCPM-2B-sft-bf16"
+parameters: 2400000000
+architecture: "transformer"
+context_length: 4096
+languages: ["en", "zh"]
+quantization:
+  - type: "none"
+  - type: "gptq"
+    bits: 4
+  - type: "gguf"
+    quant: "Q4_K_M"
+tags: ["bilingual", "chinese-english", "mobile-optimized"]
+license: "Apache-2.0"
+release_date: "2024-02"
+description: "Bilingual Chinese-English model optimized for mobile devices"
+notes: "Strong performance on both English and Chinese benchmarks"

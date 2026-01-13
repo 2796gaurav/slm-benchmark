@@ -1,0 +1,17 @@
+name: "TinyLlama-1.1B-Chat-v1.0"
+hf_model_id: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+parameters: 1100000000
+architecture: "llama"
+context_length: 2048
+languages: ["en"]
+quantization:
+  - type: "none"
+  - type: "gptq"
+    bits: 4
+  - type: "gguf"
+    quant: "Q4_K_M"
+tags: ["llama-architecture", "popular-baseline", "community-favorite"]
+license: "Apache-2.0"
+release_date: "2024-01"
+description: "One of the most popular small LLMs, trained on 3T tokens"
+training_data: "SlimPajama, Starcoderdata (3 trillion tokens)"

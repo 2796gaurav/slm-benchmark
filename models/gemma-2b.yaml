@@ -1,0 +1,17 @@
+name: "Gemma-2B-it"
+hf_model_id: "google/gemma-2b-it"
+parameters: 2000000000
+architecture: "gemma"
+context_length: 8192
+languages: ["en"]
+quantization:
+  - type: "none"
+  - type: "gptq"
+    bits: 4
+  - type: "gguf"
+    quant: "Q4_K_M"
+tags: ["google", "instruction-tuned", "gemma-family"]
+license: "Gemma License"
+release_date: "2024-02"
+description: "Google's lightweight open model, based on Gemini research"
+notes: "Instruction-tuned variant, good for chat and task completion"

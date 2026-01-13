@@ -1,0 +1,17 @@
+name: "StableLM-3B-4E1T"
+hf_model_id: "stabilityai/stablelm-3b-4e1t"
+parameters: 3000000000
+architecture: "transformer"
+context_length: 4096
+languages: ["en"]
+quantization:
+  - type: "none"
+  - type: "gptq"
+    bits: 4
+  - type: "gguf"
+    quant: "Q4_K_M"
+tags: ["stability-ai", "large-context", "research-focused"]
+license: "Apache-2.0"
+release_date: "2023-10"
+description: "Stability AI's 3B model trained on 1 trillion tokens"
+training_data: "Mix of public datasets including The Pile"

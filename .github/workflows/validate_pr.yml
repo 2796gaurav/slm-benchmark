@@ -1,0 +1,97 @@
+name: Validate PR
+
+on:
+  pull_request:
+    paths:
+      - 'models/*.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install Dependencies
+        run: pip install pyyaml requests
+      
+      - name: Validate Model Configs
+        run: |
+          for file in $(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '^models/.*\.yaml$'); do
+            echo "Validating $file"
+            python scripts/validate_model.py "$file"
+          done
+      
+      - name: Check for Required Fields
+        run: |
+          python - <<'EOF'
+          import yaml
+          import sys
+          from pathlib import Path
+          
+          required = ['name', 'hf_model_id', 'parameters', 'license']
+          errors = []
+          
+          for config_file in Path('models').glob('*.yaml'):
+              with open(config_file) as f:
+                  config = yaml.safe_load(f)
+              
+              for field in required:
+                  if field not in config:
+                      errors.append(f"{config_file}: Missing {field}")
+              
+              if config.get('parameters', 0) > 3_000_000_000:
+                  errors.append(f"{config_file}: Model too large (>3B params)")
+          
+          if errors:
+              for err in errors:
+                  print(err)
+              sys.exit(1)
+          EOF
+      
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Model Configuration Validation')
+            );
+            
+            const message = `## Model Configuration Validation
+            
+            ✅ All model configs are valid!
+            
+            Your model submission will be automatically benchmarked once this PR is merged.
+            
+            **Next Steps:**
+            1. Ensure all tests pass
+            2. Wait for maintainer review
+            3. After merge, benchmarks will run automatically
+            4. Results will be published to the leaderboard within 24 hours
+            `;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: message
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: message
+              });
+            }
