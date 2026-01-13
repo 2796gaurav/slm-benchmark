@@ -169,11 +169,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Fetch comments, look for the hidden ID
+          # Grep finds the specific line, tail gets the last one (most recent run), sed extracts the ID
           RUN_ID=$(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
             --jq '.[] | select(.body | contains("<!-- Benchmark Run ID:")) | .body' | \
+            grep "<!-- Benchmark Run ID:" | \
             tail -n 1 | \
             sed -n 's/.*<!-- Benchmark Run ID: \([0-9]*\) -->.*/\1/p')
             
+          echo "DEBUG: Extracted text line: $(gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments --jq '.[] | select(.body | contains("<!-- Benchmark Run ID:")) | .body' | grep "<!-- Benchmark Run ID:" | tail -n 1)"
+          
           if [ -z "$RUN_ID" ]; then
             echo "::error::Could not find a successful benchmark run in the comments. Please run /test-benchmark first."
             exit 1
