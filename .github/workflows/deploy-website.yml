@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
     paths:
+    paths:
       - 'website/**'
       - 'models/registry.json'
+      - '.github/workflows/deploy-website.yml'
   workflow_dispatch:
   repository_dispatch:
     types: [deploy-website]
