@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Details - SLM Benchmark</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        a {
+            color: #2563eb;
+        }
+
+        h1 {
+            color: #60a5fa;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat {
+            background: #0f172a;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 id="model-name">Loading Model Details...</h1>
+        <div class="card">
+            <div class="grid">
+                <div class="stat">
+                    <div class="stat-label">Parameters</div>
+                    <div id="model-params" class="stat-value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Aggregate Score</div>
+                    <div id="model-aggregate" class="stat-value">-</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">License</div>
+                    <div id="model-license" class="stat-value">-</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>Detailed Scores</h2>
+        <div class="card">
+            <div id="scores-container" class="grid">
+                <!-- Scores will be loaded here -->
+            </div>
+        </div>
+
+        <p><a href="index.html">Back to Leaderboard</a></p>
+    </div>
+
+    <script>
+        async function loadModelDetails() {
+            const params = new URLSearchParams(window.location.search);
+            const modelId = params.get('id');
+            if (!modelId) return;
+
+            try {
+                const response = await fetch('assets/data/leaderboard.json');
+                const data = await response.json();
+                const models = Array.isArray(data) ? data : (data.models || []);
+                const model = models.find(m => m.id === modelId);
+
+                if (model) {
+                    document.getElementById('model-name').textContent = model.name;
+                    document.getElementById('model-params').textContent = model.parameters;
+                    document.getElementById('model-aggregate').textContent = (model.aggregate_score || 0).toFixed(2);
+                    document.getElementById('model-license').textContent = model.license;
+
+                    const scoresContainer = document.getElementById('scores-container');
+                    if (model.scores) {
+                        Object.entries(model.scores).forEach(([name, score]) => {
+                            const stat = document.createElement('div');
+                            stat.className = 'stat';
+                            stat.innerHTML = `
+                                <div class="stat-label">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
+                                <div class="stat-value">${(score || 0).toFixed(2)}</div>
+                            `;
+                            scoresContainer.appendChild(stat);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load model details:', error);
+            }
+        }
+        loadModelDetails();
+    </script>
+</body>
+
+</html>

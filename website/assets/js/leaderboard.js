@@ -12,68 +12,71 @@ class LeaderboardManager {
             quantization: 'all',
             categories: new Set()
         };
-        
+
         this.init();
     }
-    
+
     async init() {
         await this.loadData();
         this.setupEventListeners();
         this.renderCategoryTags();
         this.applyFilters();
     }
-    
+
     async loadData() {
         try {
             const response = await fetch('assets/data/leaderboard.json');
-            this.data = await response.json();
-            
+            const result = await response.json();
+
+            // Handle both array and object formats
+            this.data = Array.isArray(result) ? result : (result.models || []);
+
             // Update stats
             document.getElementById('model-count').textContent = this.data.length;
-            
+
             // Hide loading, show table
             document.getElementById('loading').style.display = 'none';
             document.getElementById('leaderboard-table').style.display = 'table';
-            
+
         } catch (error) {
             console.error('Failed to load leaderboard data:', error);
-            document.getElementById('loading').innerHTML = 
+            document.getElementById('loading').innerHTML =
                 '<p style="color: var(--danger);">Failed to load data. Please try again later.</p>';
         }
     }
-    
+
     setupEventListeners() {
         // Search
         document.getElementById('search').addEventListener('input', (e) => {
             this.filters.search = e.target.value.toLowerCase();
             this.applyFilters();
         });
-        
+
         // Sort dropdown
         document.getElementById('sort').addEventListener('change', (e) => {
             this.sortData(e.target.value, 'desc');
         });
-        
+
         // Size filter
         document.getElementById('size-filter').addEventListener('change', (e) => {
             this.filters.size = e.target.value;
             this.applyFilters();
         });
-        
+
         // Quantization filter
         document.getElementById('quant-filter').addEventListener('change', (e) => {
             this.filters.quantization = e.target.value;
             this.applyFilters();
         });
-        
+
         // Table header sorting
         document.querySelectorAll('th.sortable').forEach(th => {
             th.addEventListener('click', () => {
                 const column = th.dataset.sort;
-                const direction = this.currentSort.column === column && 
-                                this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+                const direction = this.currentSort.column === column &&
+                    this.currentSort.direction === 'asc' ? 'desc' : 'asc';
                 this.sortData(column, direction);
-                
+
                 // Update UI
                 document.querySelectorAll('th.sortable').forEach(h => {
                     h.classList.remove('sorted-asc', 'sorted-desc');
@@ -82,7 +85,7 @@ class LeaderboardManager {
             });
         });
     }
-    
+
     renderCategoryTags() {
         const categories = new Set();
         this.data.forEach(model => {
@@ -90,7 +93,7 @@ class LeaderboardManager {
                 model.categories.forEach(cat => categories.add(cat));
             }
         });
-        
+
         const container = document.getElementById('category-tags');
         categories.forEach(category => {
             const tag = document.createElement('div');
@@ -108,54 +111,54 @@ class LeaderboardManager {
             container.appendChild(tag);
         });
     }
-    
+
     applyFilters() {
         this.filteredData = this.data.filter(model => {
             // Search filter
             if (this.filters.search) {
                 const searchLower = this.filters.search;
-                const matchesSearch = 
+                const matchesSearch =
                     model.name.toLowerCase().includes(searchLower) ||
                     model.family.toLowerCase().includes(searchLower) ||
                     model.hf_repo.toLowerCase().includes(searchLower);
-                
+
                 if (!matchesSearch) return false;
             }
-            
+
             // Size filter
             if (this.filters.size !== 'all') {
                 const params = this.parseParameters(model.parameters);
                 const sizeMatch = this.matchesSize(params, this.filters.size);
                 if (!sizeMatch) return false;
             }
-            
+
             // Quantization filter
             if (this.filters.quantization !== 'all') {
-                const hasQuant = model.quantizations.some(q => 
+                const hasQuant = model.quantizations.some(q =>
                     q.name.toLowerCase().includes(this.filters.quantization)
                 );
                 if (!hasQuant) return false;
             }
-            
+
             // Category filter
             if (this.filters.categories.size > 0) {
-                const hasCategory = model.categories && 
+                const hasCategory = model.categories &&
                     model.categories.some(cat => this.filters.categories.has(cat));
                 if (!hasCategory) return false;
             }
-            
+
             return true;
         });
-        
+
         this.renderTable();
     }
-    
+
     sortData(column, direction) {
         this.currentSort = { column, direction };
-        
+
         this.filteredData.sort((a, b) => {
             let aVal, bVal;
-            
+
             switch (column) {
                 case 'rank':
                     aVal = a.rank || 999;
@@ -189,23 +192,23 @@ class LeaderboardManager {
                     aVal = a[column];
                     bVal = b[column];
             }
-            
+
             if (typeof aVal === 'string') {
-                return direction === 'asc' ? 
-                    aVal.localeCompare(bVal) : 
+                return direction === 'asc' ?
+                    aVal.localeCompare(bVal) :
                     bVal.localeCompare(aVal);
             }
-            
+
             return direction === 'asc' ? aVal - bVal : bVal - aVal;
         });
-        
+
         this.renderTable();
     }
-    
+
     renderTable() {
         const tbody = document.getElementById('leaderboard-body');
         tbody.innerHTML = '';
-        
+
         if (this.filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -216,10 +219,10 @@ class LeaderboardManager {
             `;
             return;
         }
-        
+
         this.filteredData.forEach((model, index) => {
             const row = document.createElement('tr');
-            
+
             // Rank
             const rankClass = index < 3 ? `rank-${index + 1}` : '';
             row.innerHTML = `
@@ -248,9 +251,9 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 
                 <td>
-                    ${model.quantizations.map(q => 
-                        `<span class="badge badge-quant">${q.name}</span>`
-                    ).join(' ')}
+                    ${model.quantizations.map(q =>
+                `<span class="badge badge-quant">${q.name}</span>`
+            ).join(' ')}
                 </td>
                 
                 <td>
@@ -262,27 +265,27 @@ class LeaderboardManager {
                        class="model-link">📊 Details</a>
                 </td>
             `;
-            
+
             tbody.appendChild(row);
         });
     }
-    
+
     formatScore(score) {
         if (!score && score !== 0) return '-';
         return `<span style="font-weight: 600;">${score.toFixed(2)}</span>`;
     }
-    
+
     parseParameters(paramStr) {
         const match = paramStr.match(/([\d.]+)([KMB])/i);
         if (!match) return 0;
-        
+
         const num = parseFloat(match[1]);
         const unit = match[2].toUpperCase();
-        
+
         const multipliers = { K: 1e3, M: 1e6, B: 1e9 };
         return num * multipliers[unit];
     }
-    
+
     matchesSize(params, size) {
         switch (size) {
             case 'tiny':

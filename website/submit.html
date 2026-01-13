@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Model - SLM Benchmark</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        a {
+            color: #2563eb;
+        }
+
+        h1 {
+            color: #60a5fa;
+        }
+
+        pre {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Submit Your Model</h1>
+        <p>To submit a Small Language Model (SLM) for evaluation, follow these steps:</p>
+        <ol>
+            <li>Fork our <a href="https://github.com/2796gaurav/slm-benchmark">GitHub repository</a>.</li>
+            <li>Create a new YAML file in <code>models/submissions/</code> with your model details.</li>
+            <li>Open a Pull Request.</li>
+            <li>Our automated benchmark runner will test your model and post results in the PR.</li>
+        </ol>
+        <h3>Example Submission YAML</h3>
+        <pre>
+model:
+  name: "MySLM-1B"
+  family: "Llama"
+  hf_repo: "username/myslm-1b"
+  parameters: "1.1B"
+  license: "Apache-2.0"
+  quantizations:
+    - name: "FP16"
+    - name: "Q4_K_M"
+  categories:
+    - "reasoning"
+    - "language"
+        </pre>
+        <p><a href="index.html">Back to Leaderboard</a></p>
+    </div>
+</body>
+
+</html>
