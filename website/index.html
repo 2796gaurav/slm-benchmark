@@ -46,40 +46,6 @@
 
     <main>
         <div class="container">
-            <!-- Stats Scorecard -->
-            <section class="scorecard" style="margin-bottom: 2rem;">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Top Model</div>
-                            <div id="top-model-name" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔋</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Best Efficiency</div>
-                            <div id="best-efficiency-model" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🌱</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Lowest CO₂</div>
-                            <div id="lowest-co2-val" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Total Models</div>
-                            <div id="model-count-val" class="stat-value">0</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <section class="filters">
                 <div class="filter-grid">
                     <input type="search" id="search" placeholder="Search models..." aria-label="Search models">
@@ -91,7 +57,10 @@
                             <option value="aggregate">Aggregate Score</option>
                             <option value="reasoning">Reasoning</option>
                             <option value="coding">Coding</option>
-                            <option value="math">Math</option>
+                            <option value="language">Language</option>
+                            <option value="tool_use">Tool Use</option>
+                            <option value="safety">Safety</option>
+                            <option value="efficiency">Efficiency</option>
                             <option value="parameters">Parameters</option>
                         </select>
                     </div>
@@ -126,6 +95,40 @@
                 </div>
             </section>
 
+            <!-- Stats Scorecard -->
+            <section class="scorecard" style="margin-bottom: 2rem;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Top Model</div>
+                            <div id="top-model-name" class="stat-value">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔋</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Best Efficiency</div>
+                            <div id="best-efficiency-model" class="stat-value">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌱</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Lowest CO₂</div>
+                            <div id="lowest-co2-val" class="stat-value">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Total Models</div>
+                            <div id="model-count-val" class="stat-value">0</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="leaderboard" class="leaderboard">
                 <div class="table-container">
                     <div class="loading" id="loading">
@@ -138,16 +141,18 @@
                             <tr>
                                 <th class="sortable" data-sort="rank">Rank</th>
                                 <th class="sortable" data-sort="model">Model</th>
-                                <th class="sortable" data-sort="parameters">Parameters</th>
+                                <th class="sortable" data-sort="parameters">Params</th>
                                 <th class="sortable" data-sort="aggregate">Aggregate</th>
                                 <th class="sortable" data-sort="reasoning">Reasoning</th>
                                 <th class="sortable" data-sort="coding">Coding</th>
                                 <th class="sortable" data-sort="math">Math</th>
                                 <th class="sortable" data-sort="language">Language</th>
+                                <th class="sortable" data-sort="tool_use">Tool Use</th>
+                                <th class="sortable" data-sort="safety">Safety</th>
                                 <th class="sortable" data-sort="edge">Edge</th>
-                                <th class="sortable" data-sort="efficiency">Efficiency</th>
+                                <th class="sortable" data-sort="efficiency">EE Score</th>
                                 <th class="sortable" data-sort="co2">CO₂/1k</th>
-                                <th>Quantization</th>
+                                <th>Quant</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-body"></tbody>

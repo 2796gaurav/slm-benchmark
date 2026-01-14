@@ -7,12 +7,15 @@ class CarbonVisualization {
             data: {
                 datasets: [{
                     label: 'Models',
-                    data: models.map(m => ({
-                        x: m.aggregate_score,  // Accuracy
-                        y: m.energy_kwh,       // Energy consumption
-                        r: Math.max(5, Math.min(20, m.parameters / 100000000)),  // Bubble size by params (clamped)
-                        model: m.name
-                    })),
+                    data: models.map(m => {
+                        const params = this.parseParameters(m.parameters);
+                        return {
+                            x: m.aggregate_score || 0,
+                            y: m.energy_kwh || 0,
+                            r: Math.max(5, Math.min(25, params / 100000000)),
+                            model: m.name
+                        };
+                    }),
                     backgroundColor: 'rgba(75, 192, 192, 0.6)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -92,5 +95,17 @@ class CarbonVisualization {
                 }
             }
         });
+    }
+
+    parseParameters(paramStr) {
+        if (!paramStr) return 0;
+        if (typeof paramStr === 'number') return paramStr;
+        const match = paramStr.toString().match(/([\d.]+)([KMB])/i);
+        if (!match) return parseFloat(paramStr) || 0;
+
+        const num = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        const multipliers = { K: 1e3, M: 1e6, B: 1e9 };
+        return num * multipliers[unit];
     }
 }

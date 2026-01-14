@@ -115,7 +115,7 @@ class LeaderboardManager {
     }
 
     renderCategoryTags() {
-        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Edge', 'Efficiency', 'Safety']);
+        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Tool Use', 'Edge', 'Efficiency', 'Safety']);
         this.data.forEach(model => {
             if (model.categories) {
                 model.categories.forEach(cat => categories.add(cat.charAt(0).toUpperCase() + cat.slice(1)));
@@ -217,6 +217,8 @@ class LeaderboardManager {
                 case 'coding':
                 case 'math':
                 case 'language':
+                case 'tool_use':
+                case 'safety':
                 case 'edge':
                     aVal = a.scores?.[column] || 0;
                     bVal = b.scores?.[column] || 0;
@@ -245,7 +247,7 @@ class LeaderboardManager {
         if (this.filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="12" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <td colspan="14" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                         No models match your filters. Try adjusting your search criteria.
                     </td>
                 </tr>
@@ -285,6 +287,8 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.coding)}</td>
                 <td>${this.formatScore(model.scores?.math)}</td>
                 <td>${this.formatScore(model.scores?.language)}</td>
+                <td>${this.formatScore(model.scores?.tool_use)}</td>
+                <td>${this.formatScore(model.scores?.safety)}</td>
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 
                 <td style="font-family: 'JetBrains Mono', monospace; color: var(--accent-green); font-weight: 600;">
