@@ -1,0 +1,5 @@
+model:
+  hf_repo: "roneneldan/TinyStories-1M"
+  name: "TinyStories-1M"
+  categories: ["language"]
+  quick_test: true

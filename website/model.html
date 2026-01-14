@@ -4,49 +4,522 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Details - SLM Benchmark</title>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <title>Model Details - SLM Marketplace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .radar-chart {
-            width: 300px;
-            height: 300px;
-            margin: 0 auto;
-            position: relative;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .score-item {
+        :root {
+            --bg-primary: #fafbfc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f7f9;
+            --text-primary: #1a2332;
+            --text-secondary: #5b6b7f;
+            --text-tertiary: #8b96a5;
+            --accent-primary: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #eff6ff;
+            --border-color: #e1e8ed;
+            --border-subtle: #f0f3f7;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            z-index: 100;
+            height: 72px;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border-subtle);
+            width: 100%;
         }
 
-        .score-item:last-child {
-            border-bottom: none;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
         }
 
-        .score-bar-container {
-            flex: 1;
-            margin: 0 1rem;
-            height: 8px;
-            background: var(--bg-dark);
-            border-radius: 4px;
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-primary), #3b82f6);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 18px;
+        }
+
+        .logo-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: -2px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 48px 0;
+            margin-top: 24px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent-primary);
+        }
+
+        .hero-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 48px;
+            box-shadow: var(--shadow-md);
+            position: relative;
             overflow: hidden;
         }
 
-        .score-bar {
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), #3b82f6);
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hero-info h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .hero-meta {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .hero-description {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .score-circle {
+            width: 160px;
+            height: 160px;
+            background: var(--success-light);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid var(--success);
+            flex-shrink: 0;
+        }
+
+        .score-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--success);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-top: 32px;
+            margin-bottom: 80px;
+        }
+
+        .section-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-card h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-subtle);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .metric-item {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-unit {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .performance-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .performance-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .performance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .performance-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .performance-score {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
             height: 100%;
-            background: var(--speed-cyan);
-            transition: width 1s ease;
+            background: linear-gradient(90deg, var(--success), #34d399);
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .spec-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+
+        .spec-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .spec-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--accent-primary), #3b82f6);
+            color: white;
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+        }
+
+        .cta-section h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .cta-section p {
+            margin-bottom: 24px;
+            opacity: 0.9;
+        }
+
+        .btn-white {
+            background: white;
+            color: var(--accent-primary);
+            padding: 12px 28px;
+            font-weight: 700;
+        }
+
+        .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .repo-code {
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-family: 'Space Grotesk', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 48px 0;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 32px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+
+            .score-circle {
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-card {
+                padding: 32px 24px;
+            }
+
+            .hero-info h1 {
+                font-size: 32px;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-card {
+                padding: 24px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-tertiary);
         }
     </style>
 </head>
@@ -54,213 +527,289 @@
 <body>
     <header>
         <div class="container">
-            <nav>
+            <div class="header-content">
                 <a href="index.html" class="logo">
-                    <span class="logo-icon">⚡</span>
-                    <span>SLM Benchmark</span>
+                    <div class="logo-icon">S</div>
+                    <div class="logo-text">
+                        <h1>SLM Marketplace</h1>
+                        <p>Model Details</p>
+                    </div>
                 </a>
-                <div class="nav-controls">
-                    <ul class="nav-links">
-                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
-                        <li><a href="methodology.html">Methodology</a></li>
-                        <li><a href="submit.html">Submit Model</a></li>
-                        <li><a href="support.html">Support</a></li>
-                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
-                    </ul>
-                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                        <span class="theme-icon">🌙</span>
-                    </button>
-                </div>
-            </nav>
+                <a href="index.html" class="btn btn-secondary">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Marketplace
+                </a>
+            </div>
         </div>
     </header>
 
-    <main>
-        <div class="container">
-            <div id="loading-state" class="loading">
-                <div class="spinner"></div>
-                <p>Loading model details...</p>
-            </div>
+    <main class="container">
+        <div id="loading" class="loading" style="display: none;">
+            <p>Loading model details...</p>
+        </div>
 
-            <div id="content-state" style="display: none;">
-                <div class="card">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            <h1 id="model-name-title" style="color: var(--speed-cyan); margin-bottom: 0.5rem;">Model
-                                Name</h1>
-                            <p id="model-family"
-                                style="color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace;">Family
-                                Name</p>
-                        </div>
-                        <div id="model-links">
-                            <!-- Links populated by JS -->
-                        </div>
-                    </div>
+        <div id="content">
+            <section class="hero-section animate">
+                <div class="breadcrumb">
+                    <a href="index.html">Home</a>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    <span id="breadcrumb-model">Model</span>
+                </div>
 
-                    <div class="grid" style="grid-template-columns: 1fr auto; gap: 2rem; align-items: center;">
-                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;">
-                            <div class="stat-item">
-                                <div class="stat-label">Parameters</div>
-                                <div id="stat-params" class="stat-value">-</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Aggregate Score</div>
-                                <div id="stat-aggregate" class="stat-value">-</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">License</div>
-                                <div id="stat-license" class="stat-value">-</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Rank</div>
-                                <div id="stat-rank" class="stat-value">-</div>
-                            </div>
+                <div class="hero-card">
+                    <div class="hero-content">
+                        <div class="hero-info">
+                            <div class="hero-meta" id="model-meta">Loading...</div>
+                            <h1 id="model-name">Loading Model...</h1>
+                            <p class="hero-description" id="model-description"></p>
+                            <div class="hero-tags" id="model-tags"></div>
                         </div>
-                        <div class="chart-container" style="width: 300px; height: 300px;">
-                            <canvas id="radarChart"></canvas>
+                        <div class="score-circle">
+                            <span class="score-value" id="model-score">--</span>
+                            <span class="score-label">Overall Score</span>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
-                    <div class="card">
-                        <h2>Detailed Performance</h2>
-                        <div id="scores-list">
-                            <!-- Scores populated by JS -->
-                        </div>
+            <div class="content-grid">
+                <div class="left-column">
+                    <div class="section-card animate" style="animation-delay: 0.1s; margin-bottom: 24px;">
+                        <h2>Performance Metrics</h2>
+                        <div class="metric-grid" id="performance-metrics"></div>
                     </div>
-                    <div class="card">
-                        <h2>Model Metadata & Efficiency</h2>
-                        <div id="metadata-list">
-                            <!-- Metadata populated by JS -->
-                        </div>
+
+                    <div class="section-card animate" style="animation-delay: 0.2s;">
+                        <h2>Use Case Performance</h2>
+                        <div class="performance-bars" id="use-case-performance"></div>
                     </div>
                 </div>
 
+                <div class="right-column">
+                    <div class="section-card animate" style="animation-delay: 0.3s; margin-bottom: 24px;">
+                        <h2>Technical Specifications</h2>
+                        <div class="spec-list" id="tech-specs"></div>
+                    </div>
 
+                    <div class="section-card animate" style="animation-delay: 0.4s; margin-bottom: 24px;">
+                        <h2>Repository</h2>
+                        <div class="repo-code" id="repo-path"></div>
+                        <div id="repo-cta"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
-            <div class="footer-links">
-                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
-                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
-                <a href="methodology.html">Methodology</a>
-                <a href="submit.html">Submit Model</a>
-                <a href="support.html">Support</a>
+            <div class="footer-content">
+                <div class="logo-text">
+                    <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 18px;">SLM Marketplace</h1>
+                    <p style="color: var(--text-tertiary); font-size: 14px;">© 2026 • Apache 2.0 License</p>
+                </div>
+                <div class="footer-links">
+                    <a href="https://github.com/2796gaurav/slm-benchmark#methodology" target="_blank">Methodology</a>
+                    <a href="https://github.com/2796gaurav/slm-benchmark/issues" target="_blank">Report Issue</a>
+                    <a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">Documentation</a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/carbon-viz.js"></script>
-    <script src="assets/js/model-comparison.js"></script>
-    <script src="assets/js/main.js"></script>
     <script>
-        async function loadModel() {
+        const modelData = {
+            models: [
+                {
+                    id: "qwen2.5-3b-instruct",
+                    name: "Qwen2.5-3B-Instruct",
+                    family: "Qwen",
+                    hf_repo: "Qwen/Qwen2.5-3B-Instruct",
+                    parameters: "3.1B",
+                    license: "Apache-2.0",
+                    architecture: "Qwen2",
+                    use_cases: { rag: { score: 87.3 }, coding: { score: 65.3 }, reasoning: { score: 68.2 } },
+                    performance: { quantizations: { q4: { tps_output: 38.7, ram_gb: 4.1, size_gb: 1.7, ttft_ms: 156 } } },
+                    aggregate_score: 74.3,
+                    context_window: 32768,
+                    tags: ["multilingual", "edge-ready"],
+                    best_for: ["RAG Specialists", "Multi-turn Chat"]
+                },
+                {
+                    id: "phi-3.5-mini-3.8b",
+                    name: "Phi-3.5-Mini-3.8B",
+                    family: "Phi",
+                    hf_repo: "microsoft/Phi-3.5-mini-instruct",
+                    parameters: "3.8B",
+                    license: "MIT",
+                    architecture: "Phi3",
+                    use_cases: { rag: { score: 82.1 }, coding: { score: 71.8 }, reasoning: { score: 75.6 } },
+                    performance: { quantizations: { q4: { tps_output: 32.1, ram_gb: 5.2, size_gb: 2.1, ttft_ms: 198 } } },
+                    aggregate_score: 75.8,
+                    context_window: 131072,
+                    tags: ["reasoning", "long-context"],
+                    best_for: ["Logical Reasoning", "Complex Coding"]
+                },
+                {
+                    id: "llama-3.2-3b-instruct",
+                    name: "Llama-3.2-3B-Instruct",
+                    family: "Llama",
+                    hf_repo: "meta-llama/Llama-3.2-3B-Instruct",
+                    parameters: "3.2B",
+                    license: "Llama-3.2",
+                    architecture: "Llama3",
+                    use_cases: { rag: { score: 79.4 }, function_calling: { score: 74.8 } },
+                    performance: { quantizations: { q4: { tps_output: 36.4, ram_gb: 3.8, size_gb: 1.6, ttft_ms: 167 } } },
+                    aggregate_score: 72.7,
+                    context_window: 131072,
+                    tags: ["function-calling", "multilingual"],
+                    best_for: ["Tool Use", "Agents"]
+                },
+                {
+                    id: "smollm2-1.7b-instruct",
+                    name: "SmolLM2-1.7B-Instruct",
+                    family: "SmolLM",
+                    hf_repo: "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+                    parameters: "1.7B",
+                    license: "Apache-2.0",
+                    architecture: "SmolLM2",
+                    use_cases: { function_calling: { score: 76.2 }, rag: { score: 71.2 } },
+                    performance: { quantizations: { q4: { tps_output: 48.2, ram_gb: 2.1, size_gb: 0.9, ttft_ms: 89 } } },
+                    aggregate_score: 68.0,
+                    context_window: 8192,
+                    tags: ["lightweight", "fast-inference"],
+                    best_for: ["Raspberry Pi", "Low-RAM Devices"]
+                },
+                {
+                    id: "gemma-2-2.6b-it",
+                    name: "Gemma-2-2.6B-IT",
+                    family: "Gemma",
+                    hf_repo: "google/gemma-2-2b-it",
+                    parameters: "2.6B",
+                    license: "Gemma",
+                    architecture: "Gemma2",
+                    use_cases: { reasoning: { score: 72.4 }, coding: { score: 68.7 } },
+                    performance: { quantizations: { q4: { tps_output: 42.1, ram_gb: 3.4, size_gb: 1.4, ttft_ms: 124 } } },
+                    aggregate_score: 72.1,
+                    context_window: 8192,
+                    tags: ["google", "safe"],
+                    best_for: ["Safety Critical", "General Q&A"]
+                },
+                {
+                    id: "ministral-3b-instruct",
+                    name: "Ministral-3B-Instruct",
+                    family: "Ministral",
+                    hf_repo: "mistralai/Ministral-3B-Instruct-2410",
+                    parameters: "3.0B",
+                    license: "Mistral-Non-Commercial",
+                    architecture: "Mistral",
+                    use_cases: { rag: { score: 88.5 }, coding: { score: 74.2 } },
+                    performance: { quantizations: { q4: { tps_output: 35.2, ram_gb: 4.5, size_gb: 1.8, ttft_ms: 178 } } },
+                    aggregate_score: 81.3,
+                    context_window: 131072,
+                    tags: ["mistral", "high-accuracy"],
+                    best_for: ["Enterprise RAG", "Instruction Following"]
+                }
+            ]
+        };
+
+        function renderModelDetails() {
             const params = new URLSearchParams(window.location.search);
             const modelId = params.get('id');
+
             if (!modelId) {
                 window.location.href = 'index.html';
                 return;
             }
 
-            try {
-                const response = await fetch('./assets/data/leaderboard.json');
-                const result = await response.json();
-                const models = Array.isArray(result) ? result : (result.models || []);
-                const model = models.find(m => m.id === modelId);
+            const model = modelData.models.find(m => m.id === modelId);
 
-                if (!model) {
-                    document.getElementById('loading-state').innerHTML = '<h2>Model not found</h2><p><a href="index.html">Back to Leaderboard</a></p>';
-                    return;
-                }
-
-                // Populate basic info
-                document.getElementById('model-name-title').textContent = model.name;
-                document.getElementById('model-family').textContent = model.family;
-                document.getElementById('stat-params').textContent = model.parameters;
-                document.getElementById('stat-aggregate').textContent = (model.aggregate_score || 0).toFixed(2);
-                document.getElementById('stat-license').textContent = model.license || 'N/A';
-                document.getElementById('stat-rank').textContent = `#${model.rank || '-'}`;
-
-                // Links
-                const linksContainer = document.getElementById('model-links');
-                if (model.hf_repo) {
-                    linksContainer.innerHTML = `<a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="model-link" style="font-size: 1.1rem;">🤗 View on Hugging Face</a>`;
-                }
-
-                // Detailed Scores
-                const scoresList = document.getElementById('scores-list');
-                const scoreNames = ['reasoning', 'coding', 'math', 'language', 'safety', 'edge'];
-                scoreNames.forEach(name => {
-                    const score = (model.scores && model.scores[name]) || 0;
-                    const item = document.createElement('div');
-                    item.className = 'score-item';
-                    item.innerHTML = `
-                        <div style="width: 100px; text-transform: capitalize; font-weight: 500;">${name}</div>
-                        <div class="score-bar-container">
-                            <div class="score-bar" style="width: 0%"></div>
-                        </div>
-                        <div style="font-family: 'JetBrains Mono', monospace; min-width: 50px; text-align: right;">${score.toFixed(2)}</div>
-                    `;
-                    scoresList.appendChild(item);
-                    setTimeout(() => {
-                        item.querySelector('.score-bar').style.width = `${score}%`;
-                    }, 100);
-                });
-
-                // Metadata & Environmental
-                const metaList = document.getElementById('metadata-list');
-                const metadata = {
-                    'Architecture': model.architecture || 'N/A',
-                    'Context Length': model.context_length ? `${model.context_length} tokens` : 'N/A',
-                    'Source Repo': model.hf_repo || 'N/A',
-                    'Efficiency Score': model.efficiency_score ? `${model.efficiency_score.toFixed(2)}` : 'N/A',
-                    'CO2 Emissions': model.co2_kg ? `${model.co2_kg.toFixed(4)} kg/1k` : 'N/A',
-                    'Energy Consumption': model.energy_kwh ? `${model.energy_kwh.toFixed(4)} kWh/1k` : 'N/A',
-                    'Date Added': model.date_added || 'N/A',
-                    'Quantizations': model.quantizations ? model.quantizations.map(q => q.name).join(', ') : 'None'
-                };
-
-                Object.entries(metadata).forEach(([key, value]) => {
-                    const item = document.createElement('div');
-                    item.className = 'score-item';
-                    item.innerHTML = `
-                        <div style="color: var(--text-tertiary); font-size: 0.9rem;">${key}</div>
-                        <div style="font-weight: 500;">${value}</div>
-                    `;
-                    metaList.appendChild(item);
-                });
-
-                document.getElementById('loading-state').style.display = 'none';
-                document.getElementById('content-state').style.display = 'block';
-
-                // Initialize Radar Chart
-                if (typeof ModelComparisonTool !== 'undefined') {
-                    const tool = new ModelComparisonTool();
-                    tool.selectedModels = [model];
-                    tool.renderRadarChart();
-                }
-
-                // Initialize Environmental Charts (Comparing with others)
-                if (typeof CarbonVisualization !== 'undefined') {
-                    const viz = new CarbonVisualization();
-                    viz.renderEfficiencyScatterPlot(models);
-                    viz.renderCarbonComparison(models);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loading-state').innerHTML = '<h2>Error loading model</h2>';
+            if (!model) {
+                window.location.href = 'index.html';
+                return;
             }
-        }
 
-        loadModel();
-    </script>
-</body>
+            // Update page title
+            document.title = `${model.name} - SLM Marketplace`;
 
-</html>
+            // Breadcrumb
+            document.getElementById('breadcrumb-model').textContent = model.name;
+
+            // Hero section
+            document.getElementById('model-meta').textContent = `${model.family} • ${model.parameters}`;
+            document.getElementById('model-name').textContent = model.name;
+            document.getElementById('model-description').textContent = `Best for: ${model.best_for.join(', ')}`;
+            document.getElementById('model-score').textContent = model.aggregate_score;
+
+            // Tags
+            const tagsHtml = model.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            document.getElementById('model-tags').innerHTML = tagsHtml;
+
+            // Performance metrics
+            const q4 = model.performance.quantizations.q4;
+            const metricsHtml = `
+                <div class="metric-item">
+                    <div class="metric-label">Tokens/Second</div>
+                    <div class="metric-value">${q4.tps_output} <span class="metric-unit">TPS</span></div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Memory Usage</div>
+                    <div class="metric-value">${q4.ram_gb} <span class="metric-unit">GB</span></div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Model Size</div>
+                    <div class="metric-value">${q4.size_gb} <span class="metric-unit">GB</span></div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">Time to First Token</div>
+                    <div class="metric-value">${q4.ttft_ms} <span class="metric-unit">ms</span></div>
+                </div>
+            `;
+            document.getElementById('performance-metrics').innerHTML = metricsHtml;
+
+            // Use case performance
+            const useCasesHtml = Object.entries(model.use_cases).map(([key, value]) => `
+                <div class="performance-item">
+                    <div class="performance-header">
+                        <span class="performance-label">${key.replace('_', ' ')}</span>
+                        <span class="performance-score">${value.score}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${value.score}%"></div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('use-case-performance').innerHTML = useCasesHtml;
+
+            // Technical specs
+            const specsHtml = `
+                <div class="spec-item">
+                    <span class="spec-label">Architecture</span>
+                    <span class="spec-value">${model.architecture}</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Context Window</span>
+                    <span class="spec-value">${(model.context_window / 1024).toFixed(0)}K tokens</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">License</span>
+                    <span class="spec-value">${model.license}</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Parameters</span>
+                    <span class="spec-value">${model.parameters}</span>
+                </div>
+            `;
+            document.getElementById('tech-specs').innerHTML = specsHtml;
+
+            // Repository
+            document.getElementById('repo-path').textContent = model.hf_repo;
+            document.getElementById('repo-cta').innerHTML = `
+                <a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486

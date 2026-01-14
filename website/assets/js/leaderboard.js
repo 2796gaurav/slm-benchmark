@@ -257,7 +257,7 @@ class LeaderboardManager {
             emojis.push('🌱');
         }
         if (model.scores && model.scores.safety && model.scores.safety >= 90) {
-            emojis.push('🛡️');
+            emojis.push('');
         }
         return emojis.join('');
     }

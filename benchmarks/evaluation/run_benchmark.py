@@ -182,6 +182,8 @@ class SLMBenchmark:
             Exception: If model loading fails
         """
         logger.info(f"Loading model: {self.config.hf_repo}")
+        logger.info(f"Quantization: {self.config.quantization}")
+        logger.info(f"Device: {'cuda' if torch.cuda.is_available() else 'cpu'}")
         
         try:
             # Load with specific quantization if specified
@@ -200,6 +202,7 @@ class SLMBenchmark:
             if dtype is not None:
                 hf_kwargs["dtype"] = dtype
 
+            logger.info(f"Attempting to load model with kwargs: {hf_kwargs}")
             model = HFLM(**hf_kwargs)
             
             logger.info("Model loaded successfully")
@@ -207,10 +210,21 @@ class SLMBenchmark:
             
         except ValueError as e:
             logger.error(f"Unsupported quantization format: {self.config.quantization}")
+            logger.error("Supported formats: FP16, FP32, transformers")
             raise ValueError(f"Unsupported quantization: {self.config.quantization}") from e
+        except ImportError as e:
+            logger.error(f"Missing dependency: {e}")
+            logger.error("Try: pip install transformers accelerate")
+            raise RuntimeError(f"Dependency error: {e}") from e
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
-            raise RuntimeError(f"Model loading failed for {self.config.hf_repo}") from e
+            logger.error(f"Model repo: {self.config.hf_repo}")
+            logger.error("Common fixes:")
+            logger.error("  1. Verify model exists on HuggingFace Hub")
+            logger.error("  2. Check if model requires trust_remote_code=True")
+            logger.error("  3. Ensure you have internet connection")
+            logger.error("  4. Try: huggingface-cli login (if private model)")
+            raise RuntimeError(f"Model loading failed for {self.config.hf_repo}: {e}") from e
     
     def run_reasoning_benchmarks(self, model) -> Dict:
         """Run reasoning benchmarks"""
@@ -223,16 +237,21 @@ class SLMBenchmark:
             'truthfulqa_mc2'
         ]
         
-        results = evaluator.simple_evaluate(
-            model=model,
-            tasks=tasks,
-            num_fewshot=self.config.num_fewshot,
-            batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu',
-            limit=self.config.limit
-        )
-        
-        return results['results']
+        try:
+            results = evaluator.simple_evaluate(
+                model=model,
+                tasks=tasks,
+                num_fewshot=self.config.num_fewshot,
+                batch_size=self.config.batch_size,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit
+            )
+            logger.info("Reasoning benchmarks completed")
+            return results['results']
+        except Exception as e:
+            logger.error(f"Reasoning benchmarks failed: {e}")
+            logger.warning("Returning empty results for reasoning")
+            return {}
     
     def run_coding_benchmarks(self, model) -> Dict:
         """Run coding benchmarks"""
@@ -240,17 +259,20 @@ class SLMBenchmark:
         
         tasks = ['humaneval', 'mbpp']
         
-        results = evaluator.simple_evaluate(
-            model=model,
-            tasks=tasks,
-            num_fewshot=0, # Coding tasks usually differ in fewshot support, safer to use 0
-            batch_size=1,  # Coding tasks need batch_size=1
-            device='cuda' if torch.cuda.is_available() else 'cpu',
-            limit=self.config.limit,
-            confirm_run_unsafe_code=True  # Required for executing coding benchmarks
-        )
-        
-        return results['results']
+        try:
+            results = evaluator.simple_evaluate(
+                model=model,
+                tasks=tasks,
+                num_fewshot=0, # Coding tasks usually differ in fewshot support, safer to use 0
+                batch_size=1,  # Coding tasks need batch_size=1
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit,
+                confirm_run_unsafe_code=True  # Required for executing coding benchmarks
+            )
+            return results['results']
+        except Exception as e:
+            logger.error(f"Coding benchmarks failed: {e}")
+            return {}
     
     def run_math_benchmarks(self, model) -> Dict:
         """Run math benchmarks"""
@@ -258,16 +280,19 @@ class SLMBenchmark:
         
         tasks = ['gsm8k', 'math_qa']
         
-        results = evaluator.simple_evaluate(
-            model=model,
-            tasks=tasks,
-            num_fewshot=self.config.num_fewshot,
-            batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu',
-            limit=self.config.limit
-        )
-        
-        return results['results']
+        try:
+            results = evaluator.simple_evaluate(
+                model=model,
+                tasks=tasks,
+                num_fewshot=self.config.num_fewshot,
+                batch_size=self.config.batch_size,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit
+            )
+            return results['results']
+        except Exception as e:
+            logger.error(f"Math benchmarks failed: {e}")
+            return {}
     
     def run_language_benchmarks(self, model) -> Dict:
         """Run language understanding benchmarks"""
@@ -279,16 +304,19 @@ class SLMBenchmark:
             'winogrande'
         ]
         
-        results = evaluator.simple_evaluate(
-            model=model,
-            tasks=tasks,
-            num_fewshot=self.config.num_fewshot,
-            batch_size=self.config.batch_size,
-            device='cuda' if torch.cuda.is_available() else 'cpu',
-            limit=self.config.limit
-        )
-        
-        return results['results']
+        try:
+            results = evaluator.simple_evaluate(
+                model=model,
+                tasks=tasks,
+                num_fewshot=self.config.num_fewshot,
+                batch_size=self.config.batch_size,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit
+            )
+            return results['results']
+        except Exception as e:
+            logger.error(f"Math benchmarks failed: {e}")
+            return {}
     
     def run_edge_benchmarks(self, model) -> Dict:
         """Run edge performance tests"""
@@ -362,8 +390,22 @@ class SLMBenchmark:
         
         values = []
         for v in score_dict.values():
-            if isinstance(v, dict) and 'acc' in v:
-                values.append(v['acc'] * 100)
+            if isinstance(v, dict):
+                # Handle lm-eval style metrics (acc,none, acc_norm,none, etc.)
+                # Priority: acc_norm > acc > any key starting with acc
+                acc_norm = v.get('acc_norm,none', v.get('acc_norm'))
+                acc = v.get('acc,none', v.get('acc'))
+                
+                if acc_norm is not None:
+                    values.append(float(acc_norm) * 100)
+                elif acc is not None:
+                    values.append(float(acc) * 100)
+                else:
+                    # Fallback: check for any key containing 'acc'
+                    for k, val in v.items():
+                        if 'acc' in k and isinstance(val, (int, float)):
+                            values.append(float(val) * 100)
+                            break
             elif isinstance(v, (int, float)):
                 values.append(float(v))
         

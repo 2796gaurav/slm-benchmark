@@ -1,107 +1,118 @@
-# SLM Benchmark
+# SLM Marketplace 🏪
 
-**A focused, transparent benchmark for Small Language Models (1M–3B parameters).**
+**The definitive platform for discovering and deploying Small Language Models for Edge AI.**
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Website](https://img.shields.io/badge/leaderboard-live-green.svg)](https://2796gaurav.github.io/
-[![Star on GitHub](https://img.shields.io/github/stars/2796gaurav/slm-benchmark?style=social)](https://github.com/2796gaurav/slm-benchmark)slm-benchmark)
+Find the perfect model for your use case—RAG, function calling, coding, or domain-specific tasks—all benchmarked on real CPU hardware.
 
-**View the Live Leaderboard:**  
-https://2796gaurav.github.io/slm-benchmark
+[![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue)](https://2796gaurav.github.io/slm-benchmark/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+[![Models](https://img.shields.io/badge/Verified%20Models-5+-cyan)]()
+
+## 🎯 What Makes Us Different
+
+| Traditional Benchmarks | SLM Marketplace |
+|----------------------|-----------------|
+| Rank models 1-N | **Discover** by use case |
+| Single aggregate score | **Multi-dimensional** profiling |
+| GPU-focused | **CPU-first** benchmarking |
+| "Best model" | "Best model **for YOUR needs**" |
+
+## 🔍 Use-Case Evaluation
+
+We evaluate models on what actually matters for edge deployment:
+
+- **📚 RAG & Retrieval** - Needle-in-haystack, context utilization, faithfulness
+- **⚡ Function Calling** - Single/multi/parallel calls, API accuracy
+- **💻 Coding** - Code generation, completion, problem-solving
+- **🧠 Reasoning** - General knowledge, logic, commonsense
+- **🛡️ Safety & Guardrails** - Toxicity, bias, hallucination detection
+
+## 📊 CPU Performance Metrics
+
+All benchmarks run on GitHub Actions (2-core CPU), measuring:
+
+- **TPS** - Tokens Per Second (output generation)
+- **TTFT** - Time to First Token (latency)
+- **RAM** - Peak memory usage
+- **Size** - Model size by quantization (FP16, Q8, Q4)
+
+> ⚠️ GPU inference may be 5-20x faster. CPU metrics are for relative comparison only.
+
+## 🚀 Quick Start
+
+### Browse Models
+Visit [**SLM Marketplace**](https://2796gaurav.github.io/slm-benchmark/) to:
+1. Select your use case (RAG, Function Calling, Coding, etc.)
+2. Filter by RAM constraints and context length
+3. Compare models side-by-side
+4. View detailed model cards with performance data
+
+### Submit a Model
+1. Fork this repository
+2. Create `models/submissions/your-model.yaml`:
+   ```yaml
+   model:
+     hf_repo: "your-org/your-model"
+   ```
+3. Open a Pull Request
+4. Maintainers will run benchmarks and publish results
+
+## 📁 Project Structure
+
+```
+├── website/              # Static GitHub Pages site
+│   ├── index.html        # Discovery homepage
+│   ├── model.html        # Model detail page
+│   ├── compare.html      # Side-by-side comparison
+│   ├── methodology.html  # Benchmarking methodology
+│   └── assets/
+│       ├── data/         # leaderboard.json
+│       ├── js/           # marketplace.js, main.js
+│       └── css/          # style.css
+├── models/
+│   ├── registry.json     # Model registry (source of truth)
+│   └── submissions/      # Model submission YAMLs
+├── benchmarks/
+│   └── evaluation/       # Benchmark runners
+├── scripts/              # Processing scripts
+└── .github/workflows/    # CI/CD pipelines
+```
+
+## 🔧 Local Development
+
+```bash
+# Clone the repo
+git clone https://github.com/2796gaurav/slm-benchmark.git
+cd slm-benchmark
+
+# Serve website locally
+cd website
+python -m http.server 8080
+# Open http://localhost:8080
+```
+
+## 📈 Supported Models (1M-5B)
+
+| Tier | Example Models |
+|------|---------------|
+| **Ultra-Small** (< 100M) | Doge-20M, TinyStories-1M |
+| **Tiny** (100M-500M) | SmolLM2-135M/360M, Qwen2.5-0.5B |
+| **Small** (500M-1.5B) | SmolLM2-1.7B, Llama-3.2-1B, Qwen2.5-1.5B |
+| **Medium** (1.5B-3B) | Qwen2.5-3B, Llama-3.2-3B, Gemma-2-2.6B |
+| **Large** (3B-5B) | Phi-3.5-Mini-3.8B, Gemma3-4B |
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- **Add a model**: Submit a PR with a YAML file
+- **Improve benchmarks**: Enhance evaluation methodology
+- **Fix bugs**: Check open issues
+
+## 📜 License
+
+Apache 2.0 - See [LICENSE](LICENSE) for details.
 
 ---
 
-## Overview
-
-This project provides a standardized evaluation framework specifically for Small Language Models (SLMs) up to ~3B parameters. Unlike general benchmarks, SLM Benchmark focuses on:
-
-- **Hardware Neutrality:** Rankings are based purely on accuracy-style scores. Latency, energy, and CO₂ are reported for information but do not affect the ranking.
-- **Transparency:** Every evaluation run produces inspectable JSON artifacts.
-- **Safety First:** Safety and fairness are treated as a core scoring pillar, not a footnote.
-
-## Methodology
-
-### Evaluation Pillars
-
-The benchmark evaluates models across five weighted categories using the `lm-evaluation-harness` backend:
-
-1. **Reasoning (35%)**: MMLU, ARC-Challenge, HellaSwag, TruthfulQA  
-2. **Coding (20%)**: HumanEval, MBPP (with safe execution)  
-3. **Math (15%)**: GSM8K, Math QA  
-4. **Language (20%)**: BoolQ, PIQA, WinoGrande  
-5. **Safety (20%)**: Toxicity, bias, truthfulness, and fairness probes  
-
-> Note: Long-context tasks and edge metrics (latency/memory) are recorded but excluded from the aggregate score.
-
-### Scoring Formula
-
-Each pillar is normalized to **[0, 100]**. The final rank is determined by:
-
-```
-Score_final = 0.35R + 0.20C + 0.15M + 0.20L + 0.20S
-```
-
-## How to Submit a Model
-
-We welcome community submissions. A model must be:
-
-- ≤ **3B parameters**
-- **Public on Hugging Face**
-- Released under a **permissive license**
-
-### Option 1: GitHub Issue (Recommended)
-
-1. Copy the YAML schema below  
-2. Open a new issue using the **Model Submission** template  
-   https://github.com/2796gaurav/slm-benchmark/issues  
-3. Paste your YAML in the issue description  
-
-#### Submission YAML Schema
-
-```yaml
-model:
-  name: "SmolLM2-1.7B"
-  family: "SmolLM"
-  hf_repo: "HuggingFaceTB/SmolLM2-1.7B"
-  parameters: "1.7B"
-  architecture: "llama"
-  context_length: 8192
-  license: "Apache-2.0"
-
-  categories:
-    - reasoning
-    - coding
-    - math
-    - language
-    - safety
-
-  submitted_by: "github_username"
-```
-
-### Option 2: Run Locally
-
-Advanced users can run the benchmark locally and submit the raw results.
-
-```bash
-# Setup
-git clone https://github.com/2796gaurav/slm-benchmark.git
-cd slm-benchmark
-pip install -r requirements.txt
-
-# Execution
-python benchmarks/evaluation/run_benchmark.py \
-  --submission-file models/submissions/your_model.yaml \
-  --output-dir results/raw/
-```
-
-## Documentation & Support
-
-- **Contributing:** See `CONTRIBUTING.md`
-- **Developer Guide:** See `DEVELOPER_GUIDE.md`
-- **Support:** Open a GitHub Issue or Discussion
-
-## License
-
-Distributed under the **Apache 2.0 License**.
-
-Powered by **EleutherAI (lm-evaluation-harness)** and **Hugging Face**.
+**Built with ❤️ for the Edge AI community**
