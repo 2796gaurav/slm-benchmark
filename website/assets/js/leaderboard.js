@@ -65,10 +65,6 @@ class LeaderboardManager {
         const bestEff = [...this.data].sort((a, b) => (b.efficiency_score || 0) - (a.efficiency_score || 0))[0];
         document.getElementById('best-efficiency-model').textContent = bestEff.name;
 
-        // Lowest CO2
-        const lowestCO2 = [...this.data].sort((a, b) => (a.co2_kg || 999) - (b.co2_kg || 999))[0];
-        document.getElementById('lowest-co2-val').textContent = (lowestCO2.co2_kg || 0).toFixed(4) + ' kg';
-
         // Total Models
         document.getElementById('model-count-val').textContent = this.data.length;
     }
@@ -91,12 +87,6 @@ class LeaderboardManager {
             this.applyFilters();
         });
 
-        // Quantization filter
-        document.getElementById('quant-filter').addEventListener('change', (e) => {
-            this.filters.quantization = e.target.value;
-            this.applyFilters();
-        });
-
         // Table header sorting
         document.querySelectorAll('th.sortable').forEach(th => {
             th.addEventListener('click', () => {
@@ -115,7 +105,7 @@ class LeaderboardManager {
     }
 
     renderCategoryTags() {
-        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Tool Use', 'Edge', 'Efficiency', 'Safety']);
+        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Edge', 'Efficiency', 'Safety']);
         this.data.forEach(model => {
             if (model.categories) {
                 model.categories.forEach(cat => categories.add(cat.charAt(0).toUpperCase() + cat.slice(1)));
@@ -162,12 +152,6 @@ class LeaderboardManager {
             }
 
             // Quantization filter
-            if (this.filters.quantization !== 'all') {
-                const hasQuant = model.quantizations && model.quantizations.some(q =>
-                    q.name.toLowerCase().includes(this.filters.quantization.toLowerCase())
-                );
-                if (!hasQuant) return false;
-            }
 
             // Category filter
             if (this.filters.categories.size > 0) {
@@ -217,7 +201,6 @@ class LeaderboardManager {
                 case 'coding':
                 case 'math':
                 case 'language':
-                case 'tool_use':
                 case 'safety':
                 case 'edge':
                     aVal = a.scores?.[column] || 0;
@@ -247,7 +230,7 @@ class LeaderboardManager {
         if (this.filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="14" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <td colspan="13" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                         No models match your filters. Try adjusting your search criteria.
                     </td>
                 </tr>
@@ -287,7 +270,6 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.coding)}</td>
                 <td>${this.formatScore(model.scores?.math)}</td>
                 <td>${this.formatScore(model.scores?.language)}</td>
-                <td>${this.formatScore(model.scores?.tool_use)}</td>
                 <td>${this.formatScore(model.scores?.safety)}</td>
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 

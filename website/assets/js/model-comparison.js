@@ -32,7 +32,7 @@ class ModelComparisonTool {
 
         const categories = [
             'Reasoning', 'Coding', 'Math',
-            'Language', 'Tool Use', 'Safety', 'Edge'
+            'Language', 'Safety', 'Edge'
         ];
 
         // Ensure scores exist

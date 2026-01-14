@@ -9,7 +9,7 @@
       "architecture": "LlamaForCausalLM",
       "context_length": 2048,
       "license": "Apache-2.0",
-      "aggregate_score": 75.4,
+      "aggregate_score": 67.51,
       "efficiency_score": 1250.5,
       "co2_kg": 0.0012,
       "energy_kwh": 0.0008,
@@ -19,7 +19,6 @@
         "math": 45.1,
         "language": 82.3,
         "edge": 91.5,
-        "tool_use": 30.2,
         "safety": 95.0
       },
       "quantizations": [
@@ -31,7 +30,8 @@
       "categories": [
         "reasoning",
         "coding",
-        "language"
+        "language",
+        "safety"
       ],
       "date_added": "2026-01-14",
       "submitted_by": "System",
@@ -39,7 +39,7 @@
     }
   ],
   "metadata": {
-    "last_updated": "2026-01-14T12:35:00",
+    "last_updated": "2026-01-14T13:25:00",
     "total_models": 1
   }
 }

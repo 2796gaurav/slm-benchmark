@@ -82,7 +82,6 @@ class BenchmarkResult:
     rank: int
     
     # New Categories
-    tool_use_scores: Dict = None
     long_context_scores: Dict = None
     fine_tuning_metrics: Dict = None
     
@@ -134,12 +133,6 @@ class SLMBenchmark:
         
         return info
 
-    def run_tool_use_benchmarks(self, model) -> Dict:
-        """Run tool use capabilities benchmarks"""
-        logger.info("Running tool use benchmarks...")
-        # Placeholder for actual BFCL/ToolBench integration
-        # In a real impl, this would load the tool_calling.yaml and run those specific tests
-        return {"bfcl_score": 0.0, "toolbench_pass_rate": 0.0}
 
     def run_long_context_benchmarks(self, model) -> Dict:
         """Run long context benchmarks"""
@@ -304,13 +297,12 @@ class SLMBenchmark:
     def calculate_aggregate_score(self) -> float:
         """Calculate weighted aggregate score"""
         weights = {
-            'reasoning': 0.30,
+            'reasoning': 0.35,
             'coding': 0.20,
             'math': 0.15,
-            'language': 0.12,
+            'language': 0.15,
             'edge': 0.10,
-            'safety': 0.05,
-            'tool_use': 0.08
+            'safety': 0.05
         }
 
         
@@ -320,8 +312,7 @@ class SLMBenchmark:
             'math': self._average_scores(self.results['math_scores']),
             'language': self._average_scores(self.results['language_scores']),
             'edge': self._average_scores(self.results['edge_metrics']),
-            'safety': self._average_scores(self.results['safety_scores']),
-            'tool_use': self._average_scores(self.results.get('tool_use_scores', {}))
+            'safety': self._average_scores(self.results['safety_scores'])
         }
         
         aggregate = sum(scores[k] * weights[k] for k in weights.keys())
@@ -360,7 +351,7 @@ class SLMBenchmark:
         self.results['language_scores'] = self.run_language_benchmarks(model)
         self.results['edge_metrics'] = self.run_edge_benchmarks(model)
         self.results['safety_scores'] = self.run_safety_benchmarks(model)
-        self.results['tool_use_scores'] = self.run_tool_use_benchmarks(model)
+        # self.results['tool_use_scores'] = self.run_tool_use_benchmarks(model) - Removed as per request
         self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
         self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
         
@@ -397,7 +388,6 @@ class SLMBenchmark:
             language_scores=self.results['language_scores'],
             edge_metrics=self.results['edge_metrics'],
             safety_scores=self.results['safety_scores'],
-            tool_use_scores=self.results['tool_use_scores'],
             long_context_scores=self.results['long_context_scores'],
             fine_tuning_metrics=self.results['fine_tuning_metrics'],
             aggregate_score=aggregate_score,

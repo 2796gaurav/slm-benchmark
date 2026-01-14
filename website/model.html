@@ -137,15 +137,7 @@
                     </div>
                 </div>
 
-                <div class="grid"
-                    style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); margin-top: 2rem;">
-                    <div class="card">
-                        <canvas id="efficiencyChart" height="300"></canvas>
-                    </div>
-                    <div class="card">
-                        <canvas id="carbonChart" height="300"></canvas>
-                    </div>
-                </div>
+
             </div>
         </div>
     </main>
@@ -201,7 +193,7 @@
 
                 // Detailed Scores
                 const scoresList = document.getElementById('scores-list');
-                const scoreNames = ['reasoning', 'coding', 'math', 'language', 'tool_use', 'safety', 'edge'];
+                const scoreNames = ['reasoning', 'coding', 'math', 'language', 'safety', 'edge'];
                 scoreNames.forEach(name => {
                     const score = (model.scores && model.scores[name]) || 0;
                     const item = document.createElement('div');

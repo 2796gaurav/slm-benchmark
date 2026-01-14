@@ -46,86 +46,49 @@
 
     <main>
         <div class="container">
-            <section class="filters">
+            <section class="filters"
+                style="background: var(--bg-surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle); margin-bottom: 1.5rem;">
                 <div class="filter-grid">
-                    <input type="search" id="search" placeholder="Search models..." aria-label="Search models">
+                    <input type="search" id="search" placeholder="Search models by name or family..."
+                        aria-label="Search models" style="flex: 2;">
 
                     <div class="filter-group">
-                        <label for="sort">Sort By</label>
                         <select id="sort" aria-label="Sort by">
-                            <option value="rank">Rank</option>
+                            <option value="rank">Sort: Rank</option>
                             <option value="aggregate">Aggregate Score</option>
                             <option value="reasoning">Reasoning</option>
                             <option value="coding">Coding</option>
                             <option value="language">Language</option>
-                            <option value="tool_use">Tool Use</option>
-                            <option value="safety">Safety</option>
                             <option value="efficiency">Efficiency</option>
-                            <option value="parameters">Parameters</option>
                         </select>
                     </div>
 
                     <div class="filter-group">
-                        <label for="size-filter">Size</label>
                         <select id="size-filter" aria-label="Filter by size">
-                            <option value="all">All Sizes</option>
+                            <option value="all">Size: All</option>
                             <option value="tiny">Tiny (< 100M)</option>
                             <option value="small">Small (100M-500M)</option>
                             <option value="medium">Medium (500M-1B)</option>
                             <option value="large">Large (1B-3B)</option>
                         </select>
                     </div>
-
-                    <div class="filter-group">
-                        <label for="quant-filter">Quantization</label>
-                        <select id="quant-filter" aria-label="Filter by quantization">
-                            <option value="all">All</option>
-                            <option value="FP32">FP32</option>
-                            <option value="FP16">FP16</option>
-                            <option value="Q8">Q8_0</option>
-                            <option value="Q4">Q4_K_M</option>
-                        </select>
-                    </div>
                 </div>
 
-                <div style="margin-top: 1rem;">
-                    <label
-                        style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.5rem; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Categories</label>
-                    <div class="tags" id="category-tags"></div>
+                <div class="tags-container" style="margin-top: 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                    <span
+                        style="font-size: 0.7rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase;">Categories:</span>
+                    <div class="tags" id="category-tags" style="margin-top: 0;"></div>
                 </div>
             </section>
 
-            <!-- Stats Scorecard -->
-            <section class="scorecard" style="margin-bottom: 2rem;">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Top Model</div>
-                            <div id="top-model-name" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔋</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Best Efficiency</div>
-                            <div id="best-efficiency-model" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🌱</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Lowest CO₂</div>
-                            <div id="lowest-co2-val" class="stat-value">Loading...</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Total Models</div>
-                            <div id="model-count-val" class="stat-value">0</div>
-                        </div>
-                    </div>
+            <!-- Platform Summary Bar -->
+            <section class="summary-bar" style="margin-bottom: 2rem;">
+                <div class="summary-content">
+                    <span class="summary-item">🏆 Top Model: <strong id="top-model-name"
+                            style="color: var(--speed-cyan);">Loading...</strong></span>
+                    <span class="summary-item">🔋 Efficiency: <strong
+                            id="best-efficiency-model">Loading...</strong></span>
+                    <span class="summary-item">📦 Models: <strong id="model-count-val">0</strong></span>
                 </div>
             </section>
 
@@ -147,7 +110,6 @@
                                 <th class="sortable" data-sort="coding">Coding</th>
                                 <th class="sortable" data-sort="math">Math</th>
                                 <th class="sortable" data-sort="language">Language</th>
-                                <th class="sortable" data-sort="tool_use">Tool Use</th>
                                 <th class="sortable" data-sort="safety">Safety</th>
                                 <th class="sortable" data-sort="edge">Edge</th>
                                 <th class="sortable" data-sort="efficiency">EE Score</th>
