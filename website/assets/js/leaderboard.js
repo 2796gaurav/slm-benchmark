@@ -25,23 +25,35 @@ class LeaderboardManager {
 
     async loadData() {
         try {
-            const response = await fetch('assets/data/leaderboard.json');
+            console.log('Fetching leaderboard data...');
+            const response = await fetch('./assets/data/leaderboard.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const result = await response.json();
+            console.log('Data loaded:', result);
 
             // Handle both array and object formats
             this.data = Array.isArray(result) ? result : (result.models || []);
+            console.log('Parsed models:', this.data);
 
             // Update stats
-            document.getElementById('model-count').textContent = this.data.length;
+            const countEl = document.getElementById('model-count');
+            if (countEl) countEl.textContent = this.data.length;
 
             // Hide loading, show table
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('leaderboard-table').style.display = 'table';
+            const loadingEl = document.getElementById('loading');
+            const tableEl = document.getElementById('leaderboard-table');
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (tableEl) tableEl.style.display = 'table';
 
         } catch (error) {
             console.error('Failed to load leaderboard data:', error);
-            document.getElementById('loading').innerHTML =
-                '<p style="color: var(--danger);">Failed to load data. Please try again later.</p>';
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) {
+                loadingEl.innerHTML =
+                    `<p style="color: var(--danger);">Failed to load data: ${error.message}. Please try again later.</p>`;
+            }
         }
     }
 
@@ -251,7 +263,7 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 
                 <td>
-                    ${model.quantizations.map(q =>
+                    ${(model.quantizations || []).map(q =>
                 `<span class="badge badge-quant">${q.name}</span>`
             ).join(' ')}
                 </td>
@@ -276,7 +288,8 @@ class LeaderboardManager {
     }
 
     parseParameters(paramStr) {
-        const match = paramStr.match(/([\d.]+)([KMB])/i);
+        if (!paramStr) return 0;
+        const match = paramStr.toString().match(/([\d.]+)([KMB])/i);
         if (!match) return 0;
 
         const num = parseFloat(match[1]);

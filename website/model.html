@@ -92,18 +92,21 @@
             if (!modelId) return;
 
             try {
-                const response = await fetch('assets/data/leaderboard.json');
+                const response = await fetch('./assets/data/leaderboard.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
                 const data = await response.json();
                 const models = Array.isArray(data) ? data : (data.models || []);
                 const model = models.find(m => m.id === modelId);
 
                 if (model) {
                     document.getElementById('model-name').textContent = model.name;
-                    document.getElementById('model-params').textContent = model.parameters;
+                    document.getElementById('model-params').textContent = model.parameters || 'N/A';
                     document.getElementById('model-aggregate').textContent = (model.aggregate_score || 0).toFixed(2);
-                    document.getElementById('model-license').textContent = model.license;
+                    document.getElementById('model-license').textContent = model.license || 'N/A';
 
                     const scoresContainer = document.getElementById('scores-container');
+                    scoresContainer.innerHTML = '';
                     if (model.scores) {
                         Object.entries(model.scores).forEach(([name, score]) => {
                             const stat = document.createElement('div');
@@ -115,9 +118,12 @@
                             scoresContainer.appendChild(stat);
                         });
                     }
+                } else {
+                    document.getElementById('model-name').textContent = 'Model not found';
                 }
             } catch (error) {
                 console.error('Failed to load model details:', error);
+                document.getElementById('model-name').textContent = 'Error loading details';
             }
         }
         loadModelDetails();
