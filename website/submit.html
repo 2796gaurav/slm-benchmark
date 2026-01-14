@@ -78,8 +78,8 @@
         <div class="container">
             <div class="card" style="margin-top: 3rem;">
                 <h1 style="color: var(--speed-cyan); margin-bottom: 1rem;">Submit Your Model</h1>
-                <p style="color: var(--text-secondary);">Contributions are welcome! Follow these steps to submit your
-                    Small Language Model for evaluation.</p>
+                <p style="color: var(--text-secondary);">We welcome submissions of Small Language Models (≤ 3B parameters) for evaluation on our comprehensive benchmark. Follow the steps below to get your model ranked.</p>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;"><strong>Requirements:</strong> Model must be ≤ 3B parameters, publicly available on Hugging Face, and have a license that allows benchmarking and publishing results.</p>
             </div>
 
             <div class="card">
@@ -91,13 +91,24 @@
                             accessible on Hugging Face and fits the Small Language Model focus (≤ 3B parameters).</p>
                         <pre>
 model:
-  name: "YourModelName-1.1B"
-  family: "Llama"
-  hf_repo: "username/repo"
-  parameters: "1.1B"
-  architecture: "LlamaForCausalLM"
+  name: "SmolLM2-1.7B"
+  family: "SmolLM"
+  hf_repo: "HuggingFaceTB/SmolLM2-1.7B"
+  parameters: "1.7B"
+  architecture: "llama"
+  context_length: 8192
   license: "Apache-2.0"
-  categories: ["reasoning", "language", "safety"]
+  categories:
+    - "reasoning"
+    - "coding"
+    - "math"
+    - "language"
+    - "safety"
+  quantizations:
+    - name: "FP16"
+      format: "safetensors"
+  submitted_by: "github_username"
+  contact: "email@example.com"
                         </pre>
                     </div>
                 </div>
@@ -105,22 +116,25 @@ model:
                 <div class="step">
                     <div class="step-num">2</div>
                     <div class="step-content">
-                        <h3>Open an Issue</h3>
-                        <p>Go to our GitHub repository and open a new issue using the "Model Submission" template. Paste
-                            your YAML in the description. The benchmark runner validates basic metadata, license, and
-                            size limits before scheduling a run.</p>
-                        <a href="https://github.com/2796gaurav/slm-benchmark/issues/new" target="_blank"
-                            class="model-link" style="display: inline-block; margin-top: 0.5rem; font-weight: 600;">Open
-                            GitHub Issues →</a>
+                        <h3>Clone & Create a Pull Request</h3>
+                        <p>Fork the repository, clone it to your local machine, and add your YAML file to <code>models/submissions/</code>. Then push your changes and create a pull request. Our maintainers will review, validate the model, and merge your submission.</p>
+                        <pre>
+git clone https://github.com/YOUR_USERNAME/slm-benchmark.git
+cd slm-benchmark
+# Add your YAML to models/submissions/your-model.yaml
+git add models/submissions/your-model.yaml
+git commit -m "Submit: Your Model Name"
+git push origin main
+# Then open a PR on GitHub
+                        </pre>
                     </div>
                 </div>
 
                 <div class="step">
                     <div class="step-num">3</div>
                     <div class="step-content">
-                        <h3>Automated Evaluation</h3>
-                        <p>Our Community Runners will automatically pick up your submission, run the benchmarks on CPU,
-                            and update the leaderboard within 24 hours.</p>
+                        <h3>Wait for Evaluation</h3>
+                        <p>Our community runners will pick up your submission, validate the model on Hugging Face, run the comprehensive benchmark suite, and update the public leaderboard. Updates typically appear within 24 hours once processing is complete.</p>
                     </div>
                 </div>
             </div>

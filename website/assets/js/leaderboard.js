@@ -318,10 +318,6 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.safety)}</td>
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 
-                <td style="font-family: 'JetBrains Mono', monospace; color: var(--accent-green); font-weight: 600;">
-                    ${(model.efficiency_score || 0).toFixed(1)}
-                </td>
-                
                 <td style="font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">
                     ${(model.co2_kg || 0).toFixed(4)}
                 </td>
