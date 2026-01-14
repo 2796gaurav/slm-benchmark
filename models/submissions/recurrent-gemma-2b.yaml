@@ -1,0 +1,7 @@
+model:
+  name: "RecurrentGemma-2B"
+  hf_repo: "google/recurrentgemma-2b"
+  family: "Gemma"
+  parameters: "2B"
+  license: "Gemma"
+  submitted_by: "gaurav"

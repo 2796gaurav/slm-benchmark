@@ -623,102 +623,7 @@
     </footer>
 
     <script>
-        const modelData = {
-            models: [
-                {
-                    id: "qwen2.5-3b-instruct",
-                    name: "Qwen2.5-3B-Instruct",
-                    family: "Qwen",
-                    hf_repo: "Qwen/Qwen2.5-3B-Instruct",
-                    parameters: "3.1B",
-                    license: "Apache-2.0",
-                    architecture: "Qwen2",
-                    use_cases: { rag: { score: 87.3 }, coding: { score: 65.3 }, reasoning: { score: 68.2 } },
-                    performance: { quantizations: { q4: { tps_output: 38.7, ram_gb: 4.1, size_gb: 1.7, ttft_ms: 156 } } },
-                    aggregate_score: 74.3,
-                    context_window: 32768,
-                    tags: ["multilingual", "edge-ready"],
-                    best_for: ["RAG Specialists", "Multi-turn Chat"]
-                },
-                {
-                    id: "phi-3.5-mini-3.8b",
-                    name: "Phi-3.5-Mini-3.8B",
-                    family: "Phi",
-                    hf_repo: "microsoft/Phi-3.5-mini-instruct",
-                    parameters: "3.8B",
-                    license: "MIT",
-                    architecture: "Phi3",
-                    use_cases: { rag: { score: 82.1 }, coding: { score: 71.8 }, reasoning: { score: 75.6 } },
-                    performance: { quantizations: { q4: { tps_output: 32.1, ram_gb: 5.2, size_gb: 2.1, ttft_ms: 198 } } },
-                    aggregate_score: 75.8,
-                    context_window: 131072,
-                    tags: ["reasoning", "long-context"],
-                    best_for: ["Logical Reasoning", "Complex Coding"]
-                },
-                {
-                    id: "llama-3.2-3b-instruct",
-                    name: "Llama-3.2-3B-Instruct",
-                    family: "Llama",
-                    hf_repo: "meta-llama/Llama-3.2-3B-Instruct",
-                    parameters: "3.2B",
-                    license: "Llama-3.2",
-                    architecture: "Llama3",
-                    use_cases: { rag: { score: 79.4 }, function_calling: { score: 74.8 } },
-                    performance: { quantizations: { q4: { tps_output: 36.4, ram_gb: 3.8, size_gb: 1.6, ttft_ms: 167 } } },
-                    aggregate_score: 72.7,
-                    context_window: 131072,
-                    tags: ["function-calling", "multilingual"],
-                    best_for: ["Tool Use", "Agents"]
-                },
-                {
-                    id: "smollm2-1.7b-instruct",
-                    name: "SmolLM2-1.7B-Instruct",
-                    family: "SmolLM",
-                    hf_repo: "HuggingFaceTB/SmolLM2-1.7B-Instruct",
-                    parameters: "1.7B",
-                    license: "Apache-2.0",
-                    architecture: "SmolLM2",
-                    use_cases: { function_calling: { score: 76.2 }, rag: { score: 71.2 } },
-                    performance: { quantizations: { q4: { tps_output: 48.2, ram_gb: 2.1, size_gb: 0.9, ttft_ms: 89 } } },
-                    aggregate_score: 68.0,
-                    context_window: 8192,
-                    tags: ["lightweight", "fast-inference"],
-                    best_for: ["Raspberry Pi", "Low-RAM Devices"]
-                },
-                {
-                    id: "gemma-2-2.6b-it",
-                    name: "Gemma-2-2.6B-IT",
-                    family: "Gemma",
-                    hf_repo: "google/gemma-2-2b-it",
-                    parameters: "2.6B",
-                    license: "Gemma",
-                    architecture: "Gemma2",
-                    use_cases: { reasoning: { score: 72.4 }, coding: { score: 68.7 } },
-                    performance: { quantizations: { q4: { tps_output: 42.1, ram_gb: 3.4, size_gb: 1.4, ttft_ms: 124 } } },
-                    aggregate_score: 72.1,
-                    context_window: 8192,
-                    tags: ["google", "safe"],
-                    best_for: ["Safety Critical", "General Q&A"]
-                },
-                {
-                    id: "ministral-3b-instruct",
-                    name: "Ministral-3B-Instruct",
-                    family: "Ministral",
-                    hf_repo: "mistralai/Ministral-3B-Instruct-2410",
-                    parameters: "3.0B",
-                    license: "Mistral-Non-Commercial",
-                    architecture: "Mistral",
-                    use_cases: { rag: { score: 88.5 }, coding: { score: 74.2 } },
-                    performance: { quantizations: { q4: { tps_output: 35.2, ram_gb: 4.5, size_gb: 1.8, ttft_ms: 178 } } },
-                    aggregate_score: 81.3,
-                    context_window: 131072,
-                    tags: ["mistral", "high-accuracy"],
-                    best_for: ["Enterprise RAG", "Instruction Following"]
-                }
-            ]
-        };
-
-        function renderModelDetails() {
+        async function loadModelDetails() {
             const params = new URLSearchParams(window.location.search);
             const modelId = params.get('id');
 
@@ -727,13 +632,32 @@
                 return;
             }
 
-            const model = modelData.models.find(m => m.id === modelId);
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
 
-            if (!model) {
-                window.location.href = 'index.html';
-                return;
+            try {
+                const response = await fetch('./assets/data/leaderboard.json');
+                if (!response.ok) throw new Error('Failed to load data');
+
+                const data = await response.json();
+                const models = Array.isArray(data) ? data : (data.models || []);
+                const model = models.find(m => m.id === modelId);
+
+                if (!model) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                renderDetails(model);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').innerHTML = `<p style="color: #ef4444;">Error loading model details. Please try again later.</p>`;
             }
+        }
 
+        function renderDetails(model) {
             // Update page title
             document.title = `${model.name} - SLM Marketplace`;
 
@@ -741,68 +665,71 @@
             document.getElementById('breadcrumb-model').textContent = model.name;
 
             // Hero section
-            document.getElementById('model-meta').textContent = `${model.family} • ${model.parameters}`;
+            document.getElementById('model-meta').textContent = `${model.family || 'Unknown'} • ${model.parameters || 'N/A'}`;
             document.getElementById('model-name').textContent = model.name;
-            document.getElementById('model-description').textContent = `Best for: ${model.best_for.join(', ')}`;
-            document.getElementById('model-score').textContent = model.aggregate_score;
+            document.getElementById('model-description').textContent = model.best_for ? `Best for: ${model.best_for.join(', ')}` : '';
+            document.getElementById('model-score').textContent = (model.aggregate_score || 0).toFixed(1);
 
             // Tags
-            const tagsHtml = model.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            const tags = model.tags || [];
+            const tagsHtml = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
             document.getElementById('model-tags').innerHTML = tagsHtml;
 
             // Performance metrics
-            const q4 = model.performance.quantizations.q4;
+            const q4 = model.performance?.quantizations?.q4 || {};
+            const q8 = model.performance?.quantizations?.q8 || {};
             const metricsHtml = `
                 <div class="metric-item">
                     <div class="metric-label">Tokens/Second</div>
-                    <div class="metric-value">${q4.tps_output} <span class="metric-unit">TPS</span></div>
+                    <div class="metric-value">${q4.tps_output || q8.tps_output || '--'} <span class="metric-unit">TPS</span></div>
                 </div>
                 <div class="metric-item">
                     <div class="metric-label">Memory Usage</div>
-                    <div class="metric-value">${q4.ram_gb} <span class="metric-unit">GB</span></div>
+                    <div class="metric-value">${q4.ram_gb || q8.ram_gb || '--'} <span class="metric-unit">GB</span></div>
                 </div>
                 <div class="metric-item">
                     <div class="metric-label">Model Size</div>
-                    <div class="metric-value">${q4.size_gb} <span class="metric-unit">GB</span></div>
+                    <div class="metric-value">${q4.size_gb || q8.size_gb || '--'} <span class="metric-unit">GB</span></div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">Time to First Token</div>
-                    <div class="metric-value">${q4.ttft_ms} <span class="metric-unit">ms</span></div>
+                    <div class="metric-label">Latency (TTFT)</div>
+                    <div class="metric-value">${q4.ttft_ms || q8.ttft_ms || '--'} <span class="metric-unit">ms</span></div>
                 </div>
             `;
             document.getElementById('performance-metrics').innerHTML = metricsHtml;
 
             // Use case performance
-            const useCasesHtml = Object.entries(model.use_cases).map(([key, value]) => `
+            const useCases = model.use_cases || {};
+            const useCasesHtml = Object.entries(useCases).map(([key, value]) => `
                 <div class="performance-item">
                     <div class="performance-header">
                         <span class="performance-label">${key.replace('_', ' ')}</span>
-                        <span class="performance-score">${value.score}</span>
+                        <span class="performance-score">${(value.score || 0).toFixed(1)}</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${value.score}%"></div>
+                        <div class="progress-fill" style="width: ${value.score || 0}%"></div>
                     </div>
                 </div>
             `).join('');
-            document.getElementById('use-case-performance').innerHTML = useCasesHtml;
+            document.getElementById('use-case-performance').innerHTML = useCasesHtml || '<p>No use case data available</p>';
 
             // Technical specs
             const specsHtml = `
                 <div class="spec-item">
                     <span class="spec-label">Architecture</span>
-                    <span class="spec-value">${model.architecture}</span>
+                    <span class="spec-value">${model.architecture || 'N/A'}</span>
                 </div>
                 <div class="spec-item">
                     <span class="spec-label">Context Window</span>
-                    <span class="spec-value">${(model.context_window / 1024).toFixed(0)}K tokens</span>
+                    <span class="spec-value">${model.context_window ? (model.context_window / 1024).toFixed(0) + 'K' : 'N/A'} tokens</span>
                 </div>
                 <div class="spec-item">
                     <span class="spec-label">License</span>
-                    <span class="spec-value">${model.license}</span>
+                    <span class="spec-value">${model.license || 'N/A'}</span>
                 </div>
                 <div class="spec-item">
                     <span class="spec-label">Parameters</span>
-                    <span class="spec-value">${model.parameters}</span>
+                    <span class="spec-value">${model.parameters || 'N/A'}</span>
                 </div>
             `;
             document.getElementById('tech-specs').innerHTML = specsHtml;
@@ -810,6 +737,18 @@
             // Repository
             document.getElementById('repo-path').textContent = model.hf_repo;
             document.getElementById('repo-cta').innerHTML = `
-                <a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486
+                <a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="btn btn-primary" style="width: 100%; justify-content: center; background: var(--accent-primary); color: white;">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" style="margin-right: 8px;">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/>
+                    </svg>
+                    View on Hugging Face
+                </a>
+            `;
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', loadModelDetails);
+    </script>
+</body>
+
+</html>

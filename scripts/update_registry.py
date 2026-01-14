@@ -9,16 +9,28 @@ from datetime import datetime
 
 
 def _average_score(score_dict):
-    """Calculate mean score from dictionary values."""
+    """Calculate mean score from dictionary values, handling lm-eval style metrics."""
     if not score_dict:
         return 0.0
     
     values = []
     for v in score_dict.values():
-        if isinstance(v, dict) and 'acc' in v:
-            values.append(v['acc'] * 100)
-        elif isinstance(v, dict) and 'score' in v:
-            values.append(v['score'])
+        if isinstance(v, dict):
+            # Handle lm-eval style metrics (acc,none, acc_norm,none, etc.)
+            # Priority: acc_norm > acc > any key starting with acc
+            acc_norm = v.get('acc_norm,none', v.get('acc_norm'))
+            acc = v.get('acc,none', v.get('acc'))
+            
+            if acc_norm is not None:
+                values.append(float(acc_norm) * 100)
+            elif acc is not None:
+                values.append(float(acc) * 100)
+            else:
+                # Fallback: check for any key containing 'acc'
+                for k, val in v.items():
+                    if 'acc' in k and isinstance(val, (int, float)):
+                        values.append(float(val) * 100)
+                        break
         elif isinstance(v, (int, float)):
             values.append(float(v))
     

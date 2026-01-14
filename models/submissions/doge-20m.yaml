@@ -1,5 +1,0 @@
-model:
-  hf_repo: "SmallDoge/Doge-20M"
-  name: "Doge-20M"
-  categories: ["reasoning", "language"]
-  quick_test: true
