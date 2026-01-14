@@ -1,67 +1,53 @@
 import json
+import re
+from pathlib import Path
 
-# Simulated leaderboard.json
-data = {
-  "models": [
-    {
-      "id": "tinystories-1m-verify",
-      "name": "TinyStories-1M-Verify",
-      "family": "TinyStories",
-      "hf_repo": "roneneldan/TinyStories-1M",
-      "parameters": "1M",
-      "license": "Apache-2.0",
-      "aggregate_score": 0.0,
-      "scores": {
-        "reasoning": 0.0,
-        "coding": 0.0,
-        "math": 0.0,
-        "language": 0.0,
-        "edge": 0.0,
-        "safety": 0.0
-      },
-      "quantizations": [
-        {
-          "name": "FP32",
-          "format": "transformers"
-        }
-      ],
-      "categories": [
-        "language"
-      ],
-      "date_added": "2026-01-13",
-      "submitted_by": "2796gaurav",
-      "rank": 1
-    }
-  ],
-  "metadata": {
-    "last_updated": "2026-01-13T15:27:54.253547",
-    "total_models": 1
-  }
-}
 
-def parse_parameters(param_str):
-    import re
-    match = re.search(r'([\d.]+)([KMB])', param_str, re.IGNORECASE)
-    if not match: return 0
+def parse_parameters(param_str: str) -> float:
+    """Mirror the leaderboard parameter parsing logic."""
+    match = re.search(r'([\d.]+)([KMB])', str(param_str), re.IGNORECASE)
+    if not match:
+        return 0.0
     num = float(match.group(1))
     unit = match.group(2).upper()
-    multipliers = { 'K': 1e3, 'M': 1e6, 'B': 1e9 }
+    multipliers = {"K": 1e3, "M": 1e6, "B": 1e9}
     return num * multipliers[unit]
 
-# Test logic
-models = data.get('models', [])
-print(f"Total models: {len(models)}")
-for m in models:
-    name = m['name']
-    params = parse_parameters(m['parameters'])
-    score = m['aggregate_score']
-    print(f"Model: {name}, Params: {params}, Score: {score}")
-    
-    # Check if filters work
-    search = ""
-    matches_search = search.lower() in m['name'].lower() or search.lower() in m['family'].lower() or search.lower() in m['hf_repo'].lower()
-    print(f"Matches search '': {matches_search}")
-    
-    size_filter = "all"
-    is_all = size_filter == "all"
-    print(f"Matches size 'all': {is_all}")
+
+def load_sample_leaderboard() -> dict:
+    """Load the real leaderboard.json used by the website, if present."""
+    path = Path(__file__).parents[1] / "website" / "assets" / "data" / "leaderboard.json"
+    if not path.exists():
+        pytest.skip("website/assets/data/leaderboard.json not present")
+    with path.open() as f:
+        return json.load(f)
+
+
+def test_parse_parameters_basic():
+    assert parse_parameters("1M") == 1e6
+    assert parse_parameters("1.5B") == 1.5e9
+    assert parse_parameters("135M") == 135e6
+    assert parse_parameters("42K") == 42e3
+    assert parse_parameters("unknown") == 0.0
+
+
+def test_leaderboard_structure_and_sizes():
+    data = load_sample_leaderboard()
+    models = data.get("models", [])
+    assert isinstance(models, list)
+
+    # Basic shape checks
+    for model in models:
+        assert "name" in model
+        assert "family" in model
+        assert "parameters" in model
+        # Ensure parameter strings are parseable into numeric counts
+        numeric_params = parse_parameters(model["parameters"])
+        assert numeric_params >= 0
+
+
+def test_metadata_consistency():
+    data = load_sample_leaderboard()
+    metadata = data.get("metadata", {})
+    total_models = metadata.get("total_models", 0)
+    assert total_models == len(data.get("models", []))

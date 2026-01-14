@@ -57,11 +57,11 @@ class LeaderboardManager {
     calculateStats() {
         if (!this.data || this.data.length === 0) return;
 
-        // Top Model
+        // Top Model (hardware‑agnostic aggregate score)
         const topModel = [...this.data].sort((a, b) => (b.aggregate_score || 0) - (a.aggregate_score || 0))[0];
         document.getElementById('top-model-name').textContent = topModel.name;
 
-        // Best Efficiency
+        // Best Efficiency (purely informational, not used for ranking)
         const bestEff = [...this.data].sort((a, b) => (b.efficiency_score || 0) - (a.efficiency_score || 0))[0];
         document.getElementById('best-efficiency-model').textContent = bestEff.name;
 
@@ -223,6 +223,22 @@ class LeaderboardManager {
         this.renderTable();
     }
 
+    getBadgesForModel(model) {
+        const badges = [];
+        const params = this.parseParameters(model.parameters);
+
+        if (params > 0 && params <= 500e6) {
+            badges.push('<span class="badge badge-tag">SLM‑Optimized</span>');
+        }
+        if (model.efficiency_score && model.efficiency_score >= 1000) {
+            badges.push('<span class="badge badge-green">Eco‑Efficient</span>');
+        }
+        if (model.scores && model.scores.safety && model.scores.safety >= 90) {
+            badges.push('<span class="badge badge-blue">Safety‑Preferred</span>');
+        }
+        return badges.join(' ');
+    }
+
     renderTable() {
         const tbody = document.getElementById('leaderboard-body');
         tbody.innerHTML = '';
@@ -252,6 +268,9 @@ class LeaderboardManager {
                     </a>
                     <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 2px;">
                         ${model.family} • <a href="https://huggingface.co/${model.hf_repo}" target="_blank" style="color: var(--speed-cyan); text-decoration: none;">HF Repository</a>
+                    </div>
+                    <div style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
+                        ${this.getBadgesForModel(model)}
                     </div>
                 </td>
                 

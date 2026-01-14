@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - SLM Benchmark</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>SLM Benchmark</span>
+                </a>
+                <div class="nav-controls">
+                    <ul class="nav-links">
+                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
+                        <li><a href="methodology.html">Methodology</a></li>
+                        <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="support.html">Support</a></li>
+                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                    </ul>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card" style="margin-top: 3rem;">
+                <h1 style="color: var(--speed-cyan); margin-bottom: 1rem;">Support & Troubleshooting</h1>
+                <p style="font-size: 1.05rem; color: var(--text-secondary);">
+                    Running into issues with the benchmark or leaderboard? This page collects the most common problems
+                    and how to resolve them, plus how to get help from the maintainer.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Common Issues</h2>
+                <ul class="bullet-list">
+                    <li><strong>Benchmarks fail in GitHub Actions</strong> — ensure you are using a small model (&lt;= 3B),
+                        and that your workflow runs on CPU with <code>CUDA_VISIBLE_DEVICES=""</code>.</li>
+                    <li><strong>Model cannot be loaded</strong> — double‑check that the <code>hf_repo</code> is public
+                        and that you can load it with <code>transformers.AutoModelForCausalLM</code> locally.</li>
+                    <li><strong>Leaderboard not updating</strong> — confirm that <code>models/registry.json</code> was
+                        updated and that <code>scripts/update_website.py</code> was run to sync
+                        <code>website/assets/data/leaderboard.json</code>.
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>How to Get Help</h2>
+                <p>
+                    For bugs, feature requests, and model submission questions, please open a GitHub Issue. For quick
+                    clarifications, you can also start a GitHub Discussion.
+                </p>
+                <ul class="bullet-list">
+                    <li><strong>Bug Reports</strong> — include your Python version, OS, command you ran, and full stack
+                        trace.</li>
+                    <li><strong>Model Submission Help</strong> — attach your YAML and link to the Hugging Face model
+                        page.</li>
+                    <li><strong>Benchmark Methodology Questions</strong> — reference the “Benchmarking Methodology”
+                        section in the repository <code>README.md</code> and highlight what is unclear.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2>Maintainer Contact</h2>
+                <p>
+                    Primary maintainer: <strong>@2796gaurav</strong> on GitHub.
+                </p>
+                <p>
+                    For support, please prefer:
+                </p>
+                <ul class="bullet-list">
+                    <li><strong>Issues</strong> — <a href="https://github.com/2796gaurav/slm-benchmark/issues"
+                            target="_blank">GitHub Issues</a></li>
+                    <li><strong>Discussions</strong> — <a href="https://github.com/2796gaurav/slm-benchmark/discussions"
+                            target="_blank">GitHub Discussions</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
+                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
+                <a href="methodology.html">Methodology</a>
+                <a href="submit.html">Submit Model</a>
+                <a href="support.html">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>
+
+

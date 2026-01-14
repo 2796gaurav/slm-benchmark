@@ -28,6 +28,8 @@ from quantization_bench import QuantizationBenchmark
 from safety_eval import SafetyEvaluator
 from carbon_tracker import CarbonTrackerWrapper
 from fine_tuning_benchmark import FineTuningEfficiency
+from long_context_eval import LongContextEvaluator
+from bias_fairness_eval import BiasAndFairnessEvaluator
 
 # Configure logging
 logging.basicConfig(
@@ -39,7 +41,23 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class BenchmarkConfig:
-    """Configuration for benchmark run"""
+    """Configuration for benchmark run.
+    
+    Args:
+        model_name: Display name of the model
+        hf_repo: HuggingFace repository ID (e.g., 'HuggingFaceTB/SmolLM2-1.7B')
+        parameters: Model size (e.g., '1.7B')
+        quantization: Quantization format ('FP16', 'Q4_K_M', 'Q8_0')
+        tasks: List of task categories to evaluate
+        num_fewshot: Number of few-shot examples (default: 5)
+        batch_size: Batch size for inference (default: 8)
+        seed: Random seed for reproducibility (default: 42)
+        deterministic: Enable deterministic mode for reproducibility (default: True)
+        edge_tests: Run edge performance benchmarks (default: False)
+        safety_tests: Run safety and bias tests (default: True)
+        enable_carbon_tracking: Track energy consumption (default: False)
+        limit: Limit samples per task for testing (default: None = no limit)
+    """
     model_name: str
     hf_repo: str
     parameters: str
@@ -49,9 +67,7 @@ class BenchmarkConfig:
     batch_size: int = 8
     seed: int = 42
     deterministic: bool = True
-    edge_tests: bool = True
-    deterministic: bool = True
-    edge_tests: bool = True
+    edge_tests: bool = False
     safety_tests: bool = True
     enable_carbon_tracking: bool = False
     limit: int = None  # Limit number of samples per task
@@ -135,51 +151,66 @@ class SLMBenchmark:
 
 
     def run_long_context_benchmarks(self, model) -> Dict:
-        """Run long context benchmarks"""
+        """Run long context benchmarks using LongContextEvaluator.
+
+        These metrics are reported for transparency but are not currently
+        included in the aggregate ranking score.
+        """
         logger.info("Running long context benchmarks...")
-        return {"needle_in_haystack": 0.0, "multi_doc_qa": 0.0}
+        evaluator = LongContextEvaluator(model, self.config)
+        return evaluator.evaluate_all()
 
     def run_fine_tuning_benchmarks(self, model_name) -> Dict:
-        """Run fine-tuning efficiency benchmarks"""
-        logger.info("Running fine-tuning benchmarks...")
+        """Run fine-tuning efficiency benchmarks.
+
+        NOTE: This implementation is heuristic and does not perform real
+        fine-tuning (to remain CPU- and CI-friendly). The metrics are
+        reported for reference only and are not included in rankings.
+        """
+        logger.info("Running fine-tuning benchmarks (heuristic only)...")
         ft_bench = FineTuningEfficiency()
         return ft_bench.evaluate_tunability(model_name)
     
     def load_model(self):
-        """Load model from Hugging Face"""
+        """Load model from Hugging Face.
+        
+        Returns:
+            Loaded model instance (HFLM or Llama)
+            
+        Raises:
+            ValueError: If quantization format is unsupported
+            Exception: If model loading fails
+        """
         logger.info(f"Loading model: {self.config.hf_repo}")
         
         try:
             # Load with specific quantization if specified
-            if self.config.quantization == 'FP16':
-                model = HFLM(
-                    pretrained=self.config.hf_repo,
-                    device='cuda' if torch.cuda.is_available() else 'cpu',
-                    dtype='float16',
-                    trust_remote_code=True
-                )
-            elif 'Q4' in self.config.quantization or 'Q8' in self.config.quantization:
-                # Load GGUF model
-                from llama_cpp import Llama
-                model_path = self._download_gguf_model()
-                model = Llama(
-                    model_path=model_path,
-                    n_ctx=self.config.context_length,
-                    n_gpu_layers=-1 if torch.cuda.is_available() else 0
-                )
-            else:
-                model = HFLM(
-                    pretrained=self.config.hf_repo,
-                    device='cuda' if torch.cuda.is_available() else 'cpu',
-                    trust_remote_code=True
-                )
+            # NOTE: To keep the benchmark portable and GitHub Actions‑friendly,
+            # we always evaluate via the Hugging Face backend on CPU/GPU.
+            # Quantization metadata is still recorded but does not change
+            # the evaluation backend in this runner.
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            dtype = 'float16' if self.config.quantization.upper().startswith('FP16') and torch.cuda.is_available() else None
+
+            hf_kwargs = {
+                "pretrained": self.config.hf_repo,
+                "device": device,
+                "trust_remote_code": True,
+            }
+            if dtype is not None:
+                hf_kwargs["dtype"] = dtype
+
+            model = HFLM(**hf_kwargs)
             
             logger.info("Model loaded successfully")
             return model
             
+        except ValueError as e:
+            logger.error(f"Unsupported quantization format: {self.config.quantization}")
+            raise ValueError(f"Unsupported quantization: {self.config.quantization}") from e
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
-            raise
+            raise RuntimeError(f"Model loading failed for {self.config.hf_repo}") from e
     
     def run_reasoning_benchmarks(self, model) -> Dict:
         """Run reasoning benchmarks"""
@@ -262,59 +293,65 @@ class SLMBenchmark:
     def run_edge_benchmarks(self, model) -> Dict:
         """Run edge performance tests"""
         if not self.config.edge_tests:
+            logger.info("Edge benchmarks disabled (hardware-dependent metrics).")
             return {}
-        
-        logger.info("Running edge benchmarks...")
-        
+
+        logger.info("Running edge benchmarks (hardware-dependent, excluded from ranking)...")
+
         edge_bench = EdgeBenchmark(model, self.config)
-        
+
         metrics = {
             'latency': edge_bench.measure_latency(),
             'throughput': edge_bench.measure_throughput(),
             'memory_usage': edge_bench.measure_memory(),
             'energy_efficiency': edge_bench.measure_energy()
         }
-        
+
         return metrics
     
     def run_safety_benchmarks(self, model) -> Dict:
         """Run safety and bias tests"""
         if not self.config.safety_tests:
             return {}
-        
+
         logger.info("Running safety benchmarks...")
-        
+
         safety_eval = SafetyEvaluator(model, self.config)
-        
+        bias_fairness_eval = BiasAndFairnessEvaluator(model, self.config)
+
         scores = {
             'toxicity': safety_eval.measure_toxicity(),
             'bias': safety_eval.measure_bias(),
-            'truthfulness': safety_eval.measure_truthfulness()
+            'truthfulness': safety_eval.measure_truthfulness(),
+            # Bias & fairness is reported as a nested structure; it is not
+            # folded into the scalar safety score used for ranking.
+            'bias_fairness': bias_fairness_eval.evaluate_all(),
         }
-        
+
         return scores
     
     def calculate_aggregate_score(self) -> float:
         """Calculate weighted aggregate score"""
+        # Hardware-dependent metrics (edge, efficiency, carbon) are *not*
+        # included in the aggregate score used for rankings. This keeps
+        # scores comparable across heterogeneous environments (e.g. local
+        # runs vs. GitHub Actions CPU runners).
         weights = {
             'reasoning': 0.35,
             'coding': 0.20,
             'math': 0.15,
-            'language': 0.15,
-            'edge': 0.10,
-            'safety': 0.05
+            'language': 0.20,
+            'safety': 0.20,
         }
 
-        
         scores = {
-            'reasoning': self._average_scores(self.results['reasoning_scores']),
-            'coding': self._average_scores(self.results['coding_scores']),
-            'math': self._average_scores(self.results['math_scores']),
-            'language': self._average_scores(self.results['language_scores']),
-            'edge': self._average_scores(self.results['edge_metrics']),
-            'safety': self._average_scores(self.results['safety_scores'])
+            'reasoning': self._average_scores(self.results.get('reasoning_scores', {})),
+            'coding': self._average_scores(self.results.get('coding_scores', {})),
+            'math': self._average_scores(self.results.get('math_scores', {})),
+            'language': self._average_scores(self.results.get('language_scores', {})),
+            'safety': self._average_scores(self.results.get('safety_scores', {})),
         }
-        
+
         aggregate = sum(scores[k] * weights[k] for k in weights.keys())
         return aggregate
     

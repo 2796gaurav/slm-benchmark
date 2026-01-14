@@ -1,350 +1,245 @@
-# ⚡ SLM Benchmark
+## ⚡ SLM Benchmark
 
-**Comprehensive, Unbiased Benchmarking Platform for Small Language Models (1M-3B parameters)**
+**CPU-first, transparent benchmarking platform for Small Language Models (≈1M–3B parameters).**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub Pages](https://img.shields.io/badge/website-live-green.svg)](https://2796gaurav.github.io/slm-benchmark)
+[![Website](https://img.shields.io/badge/leaderboard-live-green.svg)](https://2796gaurav.github.io/slm-benchmark)
 
-## 🎯 Mission
+### 🎯 Mission
 
-Provide the most comprehensive, transparent, and unbiased evaluation platform for Small Language Models, enabling researchers and developers to make informed decisions about model selection for edge devices and resource-constrained environments.
+Provide a **practical, CPU-friendly, and unbiased** evaluation platform for Small Language Models, so developers can
+pick the right model for edge devices and resource‑constrained environments.
 
-## ✨ Features
+---
 
-### 🔬 360° Evaluation
-- **Reasoning**: MMLU, ARC-Challenge, HellaSwag, TruthfulQA
-- **Coding**: HumanEval, MBPP
-- **Math**: GSM8K, MATH
-- **Language Understanding**: BoolQ, PIQA, WinoGrande
-- **Edge Performance**: Latency, throughput, memory, energy efficiency
-- **Quantization Quality**: Accuracy retention across Q4_K_M, Q8_0, FP16
-- **Safety**: Toxicity, bias, truthfulness metrics
-- **Long Context**: Context handling up to model limits
+### ✨ What You Get
 
-### 🤖 Fully Automated
-- Zero manual intervention in testing
-- Deterministic, reproducible results
-- GitHub Actions CI/CD pipeline
-- Automated PR validation and testing
-- Real-time leaderboard updates
+- **Hardware-agnostic ranking**: Aggregate scores ignore raw latency/throughput so results remain comparable across
+  machines (including GitHub Actions runners).
+- **SLM-focused tasks**: Reasoning, coding, math, language understanding, safety, and long‑context checks tuned for
+  small models.
+- **Transparent artifacts**: JSON outputs, registry, and website data are all version‑controlled.
+- **Zero build frontend**: Static HTML/CSS/JS leaderboard that reads a single `leaderboard.json` file.
 
-### 🔒 Unbiased & Transparent
-- All evaluation code open source
-- Fixed random seeds for reproducibility
-- Identical testing environment for all models
-- Complete testing history in Git
-- No cherry-picking or selective reporting
-
-### 🌐 Beautiful Web Interface
-- Interactive leaderboard with filters
-- Detailed model comparison
-- Performance visualizations
-- Responsive design for all devices
+---
 
 ## 🚀 Quick Start
 
-### For Users: View Results
+### View the Leaderboard
 
-Visit **[https://2796gaurav.github.io/slm-benchmark](https://2796gaurav.github.io/slm-benchmark)** to browse the leaderboard.
+- Open the live site: `https://2796gaurav.github.io/slm-benchmark`
+- Each row shows:
+  - Model name, family, Hugging Face link.
+  - Aggregate score and per‑pillar scores.
+  - Efficiency / CO₂ metrics (informational only).
+  - Badges such as **SLM‑Optimized**, **Eco‑Efficient**, **Safety‑Preferred**.
 
-### For Contributors: Submit a Model
+### Run a Tiny CPU Smoke Test Locally
 
-1. **Fork the repository**
-   ```bash
-   git clone https://github.com/2796gaurav/slm-benchmark.git
-   cd slm-benchmark
-   ```
+```bash
+git clone https://github.com/2796gaurav/slm-benchmark.git
+cd slm-benchmark
 
-2. **Create your model submission file**
-   ```bash
-   cp models/submissions/template.yaml models/submissions/your-model.yaml
-   ```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install pytest
 
-3. **Fill in model details** (see [Submission Format](#submission-format) below)
+# Force CPU
+export CUDA_VISIBLE_DEVICES=""
 
-4. **Create a Pull Request**
-   - The validation bot will automatically check your submission
-   - If valid, maintainer will trigger `/test-benchmark`
-   - Results will be published to the leaderboard
+# Run a tiny benchmark on a small public model
+python benchmarks/evaluation/run_benchmark.py \
+  --submission-file models/submissions/tiny_test.yaml \
+  --output-dir results/raw/ \
+  --limit 5 \
+  --batch-size 1
+```
 
-## 📝 Submission Format
+Artifacts will appear under `results/raw/TinyStories-1M-Verify/<timestamp>/`.
 
-Create a YAML file in `models/submissions/` with this structure:
+---
+
+## 📝 Submission Format (YAML)
+
+Create a file in `models/submissions/`:
 
 ```yaml
 model:
   name: "SmolLM2-1.7B"
   family: "SmolLM"
   version: "2.0"
-  
+
   # Hugging Face details
   hf_repo: "HuggingFaceTB/SmolLM2-1.7B"
-  hf_revision: "main"  # or specific commit hash
-  
+  hf_revision: "main"  # or a specific commit
+
   # Model specifications
-  parameters: "1.7B"  # Must be ≤3B
+  parameters: "1.7B"         # must be ≤ 3B
   architecture: "llama"
   context_length: 8192
   license: "Apache-2.0"
-  
-  # Quantizations to test
+
+  # Quantizations to record (metadata only for now)
   quantizations:
     - name: "FP16"
       format: "safetensors"
-    - name: "Q4_K_M"
-      format: "gguf"
-      source: "bartowski/SmolLM2-1.7B-GGUF"
-    - name: "Q8_0"
-      format: "gguf"
-      source: "bartowski/SmolLM2-1.7B-GGUF"
-  
-  # Categories (select all that apply)
+
+  # Evaluation pillars (select all that apply)
   categories:
     - "reasoning"
     - "coding"
-    - "edge-optimized"
-  
+    - "math"
+    - "language"
+    - "safety"
+
   # Submission metadata
   submitted_by: "github_username"
   submitted_date: "2026-01-13"
   contact: "email@example.com"
-  
-  # Testing preferences (optional)
-  testing:
-    priority: "standard"  # standard | fast | comprehensive
-    skip_safety: false
-    edge_devices: ["cpu", "gpu"]
 ```
 
-### Submission Requirements
+**Requirements**
 
-✅ **Required:**
-- Model must have ≤3B parameters
-- Must be publicly accessible on Hugging Face
-- Must have open license allowing benchmarking
-- All required fields must be filled
+- Model size ≤ 3B parameters.
+- Model is public on Hugging Face.
+- License explicitly allows benchmarking and publishing results.
 
-❌ **Not Allowed:**
-- Models >3B parameters
-- Private or gated models
-- Models with restrictive licenses
-- Duplicate submissions
+For a minimal example, see `models/submissions/template.yml` and `models/submissions/tiny_test.yaml`.
 
-## 🔄 Automated Workflow
+---
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  1. Create PR with model YAML                          │
-│  2. Validation Bot checks submission ✓                 │
-│  3. Maintainer reviews & comments "/test-benchmark"    │
-│  4. Testing Bot runs comprehensive benchmarks          │
-│  5. Results posted as PR comment                       │
-│  6. Maintainer reviews & comments "/push-results"      │
-│  7. Publishing Bot updates leaderboard & merges PR     │
-│  8. Website automatically rebuilds and deploys         │
-└─────────────────────────────────────────────────────────┘
-```
+## 📊 Benchmark Methodology (2026)
 
-## 🏗️ Architecture
+### Deterministic, CPU-Friendly Runs
 
-### Repository Structure
+- Fixed random seed: `42`.
+- Evaluation backend: `lm-evaluation-harness` via `HFLM` (Transformers).
+- Works on **CPU by default**; if a GPU is present, it may be used for speed but **scores are designed to be
+  hardware‑agnostic**.
 
-```
+### Evaluation Pillars
+
+- **Reasoning** — tasks like MMLU, ARC‑Challenge, HellaSwag, TruthfulQA.
+- **Coding** — tasks like HumanEval, MBPP (run with safe execution flags).
+- **Math** — tasks like GSM8K / Math QA.
+- **Language** — tasks like BoolQ, PIQA, WinoGrande.
+- **Safety** — lightweight toxicity, bias, and truthfulness probes (with optional Detoxify integration).
+- **Long context (informational)** — Needle‑in‑haystack and multi‑doc QA via `LongContextEvaluator`.
+
+### Aggregate Score (Used for Ranking)
+
+Hardware‑dependent metrics (latency, throughput, energy, CO₂) are **not** used in the aggregate score.
+
+We compute:
+
+- Reasoning — 35%
+- Coding — 20%
+- Math — 15%
+- Language — 20%
+- Safety — 20%
+
+Each pillar is normalized to \[0, 100\], then combined:
+
+\\[
+Score_{final} = 0.35 \cdot R + 0.20 \cdot C + 0.15 \cdot M + 0.20 \cdot L + 0.20 \cdot S
+\\]
+
+Where \(R, C, M, L, S\) are the average scores per pillar.
+
+### Hardware-Dependent Metrics (Informational Only)
+
+When enabled, we also report:
+
+- **Latency / Throughput** (EdgeBenchmark).
+- **Memory usage** (CPU or GPU if available).
+- **Energy & CO₂** (CodeCarbon via `CarbonTrackerWrapper`).
+- **Heuristic fine‑tuning friendliness** (no real fine‑tuning runs).
+
+These appear in the JSON, registry, and website, but are **not** part of the aggregate ranking.
+
+---
+
+## 🧱 Repository Layout
+
+```text
 slm-benchmark/
-├── .github/
-│   ├── workflows/           # GitHub Actions CI/CD
-│   └── scripts/             # Automation scripts
-├── benchmarks/
-│   ├── evaluation/          # Benchmark runners
-│   └── configs/             # Task configurations
-├── models/
-│   ├── registry.json        # All approved models
-│   └── submissions/         # Pending submissions
-├── results/
-│   ├── raw/                 # Raw benchmark outputs
-│   ├── processed/           # Aggregated results
-│   └── archives/            # Historical snapshots
-├── website/                 # GitHub Pages site
-│   ├── index.html
-│   └── assets/
-└── scripts/                 # Utility scripts
+  benchmarks/
+    evaluation/        # Benchmark runner and evaluation modules
+    configs/           # High-level configs (currently informational)
+    validation/        # Auto-detection tools for HF models
+  models/
+    registry.json      # Source of truth for leaderboard
+    submissions/       # Model submission YAMLs
+  results/
+    raw/               # Per-run JSON artifacts
+    processed/         # Aggregated reports
+    archives/          # Historical snapshots
+  scripts/
+    update_registry.py # Registry updater
+    update_website.py  # Syncs registry -> website JSON
+    generate_report.py # Aggregates raw results
+  website/
+    index.html, model.html, methodology.html, submit.html, support.html
+    assets/css, assets/js, assets/data/leaderboard.json
+  .github/workflows/
+    ci.yml             # CPU-only test workflow
 ```
 
-### Tech Stack
+See `DEVELOPER_GUIDE.md` for a deeper architectural walkthrough.
 
-- **Benchmarking**: EleutherAI's lm-evaluation-harness
-- **Models**: Hugging Face Transformers, llama.cpp
-- **CI/CD**: GitHub Actions
-- **Website**: Vanilla HTML/CSS/JS (no build step needed)
-- **Hosting**: GitHub Pages
-- **Data**: JSON (no database needed)
+---
 
-## 📊 Benchmark Methodology
+## 🤖 GitHub Actions & CPU CI
 
-### Deterministic Testing
-- Fixed random seed: `42`
-- Controlled environment: Docker containers
-- Identical hardware: **Modal.com T4 GPUs** (Standardized Environment)
-- Reproducible results: All parameters logged
+- `.github/workflows/ci.yml` runs:
+  - `pip install -r requirements.txt`
+  - `pytest`
+- Defaults:
+  - `CUDA_VISIBLE_DEVICES` is cleared so runs do not assume a GPU.
+  - Tests are designed to be fast and network‑light (no heavy HF downloads).
 
-### Scoring System
+You can mirror this pattern in your own repositories when using SLM Benchmark as a reference.
 
-**Aggregate Score** = Weighted average:
-- Reasoning: 30%
-- Coding: 20%
-- Math: 15%
-- Language: 15%
-- Edge Performance: 10%
-- Safety: 10%
+---
 
-Each category score is normalized to 0-100 scale.
+## 🔖 Badges & Model Metadata
 
-### Hardware Specifications
+The website dynamically assigns **non‑normative badges** based on JSON metadata:
 
-All models tested on:
-- **GPU**: NVIDIA RTX 4090 (24GB VRAM)
-- **CPU**: AMD Ryzen 9 5950X
-- **RAM**: 64GB DDR4
-- **Storage**: NVMe SSD
+- **SLM‑Optimized** — parameters ≤ 500M.
+- **Eco‑Efficient** — high efficiency score (good accuracy / kWh where energy data is available).
+- **Safety‑Preferred** — safety pillar score ≥ 90.
 
-## 🔒 Security & Rate Limiting
+Badges are meant as guidance, not absolute labels; for research‑grade analysis always inspect the full JSON metrics.
 
-To prevent abuse of GitHub Actions and GPU resources:
+---
 
-### Rate Limits
-- **Per User**: 3 submissions per day
-- **Per Model**: 1 benchmark run per day
-- **Total**: 10 benchmarks per day across all users
+## 🧩 Docs & Support
 
-### Access Control
-- Only repository owner can trigger benchmarks
-- PRs cannot modify workflow files or evaluation code
-- All changes audited and logged
+- **Contribution guidelines**: `CONTRIBUTING.md`
+- **Developer guide**: `DEVELOPER_GUIDE.md`
+- **Troubleshooting**: `TROUBLESHOOTING.md`
+- **Support**: `SUPPORT.md` (and the `website/support.html` page)
 
-### Resource Protection
-- Automatic cleanup after each run
-- Cost estimation before running
-- GPU time tracking and limits
+Maintainer: **@2796gaurav** (GitHub). Please prefer GitHub Issues / Discussions for questions.
 
-## 🤝 Contributing
+---
 
-We welcome contributions! Here's how you can help:
+## 📜 License & Acknowledgements
 
-### Submit Models
-Follow the [Quick Start](#quick-start) guide above.
-
-### Improve Benchmarks
-- Propose new evaluation tasks
-- Suggest improvements to existing tests
-- Help validate results
-
-### Enhance Website
-- Improve UI/UX
-- Add new visualizations
-- Fix bugs
-
-### Documentation
-- Improve guides and tutorials
-- Translate documentation
-- Create video tutorials
-
-**Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.**
-
-## 📖 Documentation
-
-- **[Submission Guide](docs/SUBMISSION_GUIDE.md)** - How to submit models
-- **[Methodology](docs/BENCHMARK_METHODOLOGY.md)** - Detailed testing methodology
-- **[Reproducibility](docs/REPRODUCIBILITY.md)** - How to reproduce results
-- **[FAQ](docs/FAQ.md)** - Frequently asked questions
-- **[API](docs/API.md)** - Programmatic access to results
-
-## 🎯 Roadmap
-
-### Phase 1: Launch (January 2026) ✅
-- [x] Core benchmarking pipeline
-- [x] Automated CI/CD workflows
-- [x] Website with leaderboard
-- [x] Initial model submissions
-
-### Phase 2: Expansion (Q1 2026)
-- [ ] Add 20+ models to leaderboard
-- [ ] Multilingual evaluation suite
-- [ ] Mobile/ARM device benchmarks
-- [ ] Community voting system
-
-### Phase 3: Advanced Features (Q2 2026)
-- [ ] Real-world task benchmarks
-- [ ] Custom evaluation workflows
-- [ ] API for programmatic access
-- [ ] Historical trend analysis
-
-### Phase 4: Ecosystem (Q3-Q4 2026)
-- [ ] Integration with model hubs
-- [ ] Automated model discovery
-- [ ] Benchmark-as-a-service
-- [ ] Research partnerships
-
-## 🌟 Starter Models
-
-We've pre-benchmarked these models to get you started:
-
-### HuggingFace
-- **SmolLM2-1.7B** - Latest SLM from HuggingFace
-- **SmolLM2-360M** - Efficient 360M parameter model
-- **SmolLM2-135M** - Tiny but capable
-
-### Qwen
-- **Qwen2.5-1.5B** - Strong reasoning abilities
-- **Qwen2.5-0.5B** - Ultra-efficient edge model
-
-### Microsoft
-- **Phi-2** - 2.7B parameter model with strong performance
-
-### Alibaba
-- **MiniCPM-2B** - Competitive Chinese-English model
-
-[View all benchmarked models →](https://2796gaurav.github.io/slm-benchmark)
-
-## 📊 Sample Results
-
-| Rank | Model | Params | Aggregate | Reasoning | Coding | Math |
-|------|-------|--------|-----------|-----------|--------|------|
-| 🥇 | Phi-2 | 2.7B | 74.2 | 68.5 | 52.3 | 48.7 |
-| 🥈 | SmolLM2-1.7B | 1.7B | 71.8 | 65.2 | 48.9 | 45.3 |
-| 🥉 | Qwen2.5-1.5B | 1.5B | 70.5 | 64.8 | 47.1 | 44.6 |
-
-*Scores are normalized 0-100. Updated: January 2026*
-
-## 🔗 Links
-
-- **Website**: [https://2796gaurav.github.io/slm-benchmark](https://2796gaurav.github.io/slm-benchmark)
-- **Repository**: [https://github.com/2796gaurav/slm-benchmark](https://github.com/2796gaurav/slm-benchmark)
-- **Issues**: [Report bugs or request features](https://github.com/2796gaurav/slm-benchmark/issues)
-- **Discussions**: [Join the conversation](https://github.com/2796gaurav/slm-benchmark/discussions)
-
-## 📜 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **EleutherAI** - For lm-evaluation-harness
-- **Hugging Face** - For Transformers and model hosting
-- **ggerganov** - For llama.cpp
-- **Community Contributors** - For model submissions and improvements
-
-## 📧 Contact
-
-- **Maintainer**: @2796gaurav
-- **Email**: [Create an issue](https://github.com/2796gaurav/slm-benchmark/issues)
-- **Twitter**: Coming soon
+- License: **Apache 2.0** (see `LICENSE`).
+- Built on:
+  - **EleutherAI** — `lm-evaluation-harness`
+  - **Hugging Face** — Transformers and model hosting
+  - **CodeCarbon** — emission and energy tracking (optional)
 
 ---
 
 <div align="center">
 
-**⚡ Built with ❤️ for the SLM community**
+**⚡ Built with care for the SLM community.**
 
 [![Star on GitHub](https://img.shields.io/github/stars/2796gaurav/slm-benchmark?style=social)](https://github.com/2796gaurav/slm-benchmark)
 
