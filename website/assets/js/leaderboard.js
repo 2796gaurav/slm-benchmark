@@ -31,15 +31,12 @@ class LeaderboardManager {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const result = await response.json();
-            console.log('Data loaded:', result);
 
             // Handle both array and object formats
             this.data = Array.isArray(result) ? result : (result.models || []);
-            console.log('Parsed models:', this.data);
 
             // Update stats
-            const countEl = document.getElementById('model-count');
-            if (countEl) countEl.textContent = this.data.length;
+            this.calculateStats();
 
             // Hide loading, show table
             const loadingEl = document.getElementById('loading');
@@ -55,6 +52,25 @@ class LeaderboardManager {
                     `<p style="color: var(--danger);">Failed to load data: ${error.message}. Please try again later.</p>`;
             }
         }
+    }
+
+    calculateStats() {
+        if (!this.data || this.data.length === 0) return;
+
+        // Top Model
+        const topModel = [...this.data].sort((a, b) => (b.aggregate_score || 0) - (a.aggregate_score || 0))[0];
+        document.getElementById('top-model-name').textContent = topModel.name;
+
+        // Best Efficiency
+        const bestEff = [...this.data].sort((a, b) => (b.efficiency_score || 0) - (a.efficiency_score || 0))[0];
+        document.getElementById('best-efficiency-model').textContent = bestEff.name;
+
+        // Lowest CO2
+        const lowestCO2 = [...this.data].sort((a, b) => (a.co2_kg || 999) - (b.co2_kg || 999))[0];
+        document.getElementById('lowest-co2-val').textContent = (lowestCO2.co2_kg || 0).toFixed(4) + ' kg';
+
+        // Total Models
+        document.getElementById('model-count-val').textContent = this.data.length;
     }
 
     setupEventListeners() {
@@ -99,24 +115,25 @@ class LeaderboardManager {
     }
 
     renderCategoryTags() {
-        const categories = new Set();
+        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Edge', 'Efficiency', 'Safety']);
         this.data.forEach(model => {
             if (model.categories) {
-                model.categories.forEach(cat => categories.add(cat));
+                model.categories.forEach(cat => categories.add(cat.charAt(0).toUpperCase() + cat.slice(1)));
             }
         });
 
         const container = document.getElementById('category-tags');
+        container.innerHTML = ''; // Clear old tags
         categories.forEach(category => {
             const tag = document.createElement('div');
             tag.className = 'tag';
             tag.textContent = category;
             tag.addEventListener('click', () => {
                 tag.classList.toggle('active');
-                if (this.filters.categories.has(category)) {
-                    this.filters.categories.delete(category);
+                if (this.filters.categories.has(category.toLowerCase())) {
+                    this.filters.categories.delete(category.toLowerCase());
                 } else {
-                    this.filters.categories.add(category);
+                    this.filters.categories.add(category.toLowerCase());
                 }
                 this.applyFilters();
             });
@@ -132,7 +149,7 @@ class LeaderboardManager {
                 const matchesSearch =
                     model.name.toLowerCase().includes(searchLower) ||
                     model.family.toLowerCase().includes(searchLower) ||
-                    model.hf_repo.toLowerCase().includes(searchLower);
+                    (model.hf_repo && model.hf_repo.toLowerCase().includes(searchLower));
 
                 if (!matchesSearch) return false;
             }
@@ -146,16 +163,16 @@ class LeaderboardManager {
 
             // Quantization filter
             if (this.filters.quantization !== 'all') {
-                const hasQuant = model.quantizations.some(q =>
-                    q.name.toLowerCase().includes(this.filters.quantization)
+                const hasQuant = model.quantizations && model.quantizations.some(q =>
+                    q.name.toLowerCase().includes(this.filters.quantization.toLowerCase())
                 );
                 if (!hasQuant) return false;
             }
 
             // Category filter
             if (this.filters.categories.size > 0) {
-                const hasCategory = model.categories &&
-                    model.categories.some(cat => this.filters.categories.has(cat));
+                const modelCategories = (model.categories || []).map(c => c.toLowerCase());
+                const hasCategory = Array.from(this.filters.categories).some(cat => modelCategories.includes(cat));
                 if (!hasCategory) return false;
             }
 
@@ -188,6 +205,14 @@ class LeaderboardManager {
                     aVal = a.aggregate_score || 0;
                     bVal = b.aggregate_score || 0;
                     break;
+                case 'efficiency':
+                    aVal = a.efficiency_score || 0;
+                    bVal = b.efficiency_score || 0;
+                    break;
+                case 'co2':
+                    aVal = a.co2_kg || 999;
+                    bVal = b.co2_kg || 999;
+                    break;
                 case 'reasoning':
                 case 'coding':
                 case 'math':
@@ -195,10 +220,6 @@ class LeaderboardManager {
                 case 'edge':
                     aVal = a.scores?.[column] || 0;
                     bVal = b.scores?.[column] || 0;
-                    break;
-                case 'date':
-                    aVal = new Date(a.date_added);
-                    bVal = new Date(b.date_added);
                     break;
                 default:
                     aVal = a[column];
@@ -224,7 +245,7 @@ class LeaderboardManager {
         if (this.filteredData.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="11" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <td colspan="12" style="text-align: center; padding: 3rem; color: var(--text-muted);">
                         No models match your filters. Try adjusting your search criteria.
                     </td>
                 </tr>
@@ -241,12 +262,11 @@ class LeaderboardManager {
                 <td class="rank ${rankClass}">#${index + 1}</td>
                 
                 <td>
-                    <a href="model.html?id=${model.id}" class="model-name-link">
-                        <div class="model-name">${model.name}</div>
+                    <a href="model.html?id=${model.id}" class="model-name-link" style="text-decoration: none;">
+                        <div class="model-name" style="font-size: 1.05rem;">${model.name}</div>
                     </a>
-                    <div style="font-size: 0.875rem; color: var(--text-muted);">${model.family}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
-                        via <a href="https://huggingface.co/${model.hf_repo}" target="_blank" style="color: var(--speed-cyan);">HuggingFace</a>
+                    <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 2px;">
+                        ${model.family} • <a href="https://huggingface.co/${model.hf_repo}" target="_blank" style="color: var(--speed-cyan); text-decoration: none;">HF Repository</a>
                     </div>
                 </td>
                 
@@ -255,7 +275,7 @@ class LeaderboardManager {
                 </td>
                 
                 <td>
-                    <div class="score">${(model.aggregate_score || 0).toFixed(2)}</div>
+                    <div class="score" style="color: var(--speed-cyan); font-size: 1.1rem;">${(model.aggregate_score || 0).toFixed(2)}</div>
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: ${model.aggregate_score || 0}%"></div>
                     </div>
@@ -267,16 +287,19 @@ class LeaderboardManager {
                 <td>${this.formatScore(model.scores?.language)}</td>
                 <td>${this.formatScore(model.scores?.edge)}</td>
                 
-                <td>
-                    ${(model.quantizations || []).map(q =>
-                `<span class="badge badge-quant">${q.name}</span>`
-            ).join(' ')}
+                <td style="font-family: 'JetBrains Mono', monospace; color: var(--accent-green); font-weight: 600;">
+                    ${(model.efficiency_score || 0).toFixed(1)}
                 </td>
                 
+                <td style="font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);">
+                    ${(model.co2_kg || 0).toFixed(4)}
+                </td>
+
                 <td>
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <a href="model.html?id=${model.id}" class="btn-sm">📊 Details</a>
-                        <a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="btn-sm btn-outline">🤗 HF Repo</a>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                        ${(model.quantizations || []).map(q =>
+                `<span class="badge badge-quant">${q.name}</span>`
+            ).join('')}
                     </div>
                 </td>
             `;
