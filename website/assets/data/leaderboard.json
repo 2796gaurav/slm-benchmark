@@ -1,54 +1,6 @@
 {
   "models": [
     {
-      "id": "ministral-3b-instruct",
-      "name": "Ministral-3B-Instruct",
-      "family": "Ministral",
-      "hf_repo": "mistralai/Ministral-3B-Instruct-2410",
-      "parameters": "3B",
-      "license": "Mistral-Non-Commercial",
-      "context_window": 131072,
-      "architecture": "Mistral",
-      "use_cases": {
-        "rag": {
-          "score": 88.5,
-          "benchmarks": {
-            "niah": 91.2,
-            "ruler": 85.8
-          },
-          "recommended": true
-        },
-        "coding": {
-          "score": 74.2,
-          "benchmarks": {
-            "humaneval": 71.5,
-            "mbpp": 76.9
-          },
-          "recommended": true
-        }
-      },
-      "performance": {
-        "hardware": "GitHub Actions (2-core CPU)",
-        "quantizations": {
-          "q4": {
-            "size_gb": 1.8,
-            "ram_gb": 4.5,
-            "tps_output": 35.2,
-            "ttft_ms": 178
-          }
-        }
-      },
-      "tags": [
-        "mistral",
-        "high-accuracy",
-        "long-context"
-      ],
-      "aggregate_score": 81.3,
-      "date_added": "2026-01-14",
-      "submitted_by": "slm-marketplace",
-      "rank": 1
-    },
-    {
       "id": "phi-3.5-mini-3.8b",
       "name": "Phi-3.5-Mini-3.8B",
       "family": "Phi",
@@ -59,7 +11,7 @@
       "architecture": "Phi3",
       "use_cases": {
         "rag": {
-          "score": 82.1,
+          "score": 82.2,
           "benchmarks": {
             "niah": 82.1,
             "ruler": 79.3,
@@ -68,7 +20,7 @@
           "recommended": true
         },
         "function_calling": {
-          "score": 68.4,
+          "score": 66.80000000000001,
           "benchmarks": {
             "bfcl_v2": 68.4,
             "api_accuracy": 65.2
@@ -76,7 +28,7 @@
           "recommended": false
         },
         "coding": {
-          "score": 71.8,
+          "score": 71.80000000000001,
           "benchmarks": {
             "humaneval": 68.2,
             "mbpp": 75.4
@@ -84,7 +36,7 @@
           "recommended": true
         },
         "reasoning": {
-          "score": 75.6,
+          "score": 75.60000000000001,
           "benchmarks": {
             "mmlu": 72.1,
             "arc_challenge": 78.4,
@@ -154,18 +106,16 @@
         "32gb_workstation"
       ],
       "best_for": [
-        "Reasoning",
+        "Rag",
         "Coding",
-        "Long-context RAG"
+        "Reasoning",
+        "Guardrails"
       ],
-      "not_for": [
-        "Ultra-low memory devices",
-        "Real-time applications"
-      ],
-      "aggregate_score": 75.8,
+      "not_for": [],
+      "aggregate_score": 75.76,
       "date_added": "2026-01-14",
       "submitted_by": "slm-marketplace",
-      "rank": 2
+      "rank": 1
     },
     {
       "id": "qwen2.5-3b-instruct",
@@ -178,7 +128,7 @@
       "architecture": "Qwen2",
       "use_cases": {
         "rag": {
-          "score": 87.3,
+          "score": 83.73333333333333,
           "benchmarks": {
             "niah": 87.3,
             "ruler": 84.1,
@@ -187,15 +137,15 @@
           "recommended": true
         },
         "function_calling": {
-          "score": 72.1,
+          "score": 70.25,
           "benchmarks": {
             "bfcl_v2": 72.1,
             "api_accuracy": 68.4
           },
-          "recommended": false
+          "recommended": true
         },
         "coding": {
-          "score": 65.3,
+          "score": 65.30000000000001,
           "benchmarks": {
             "humaneval": 58.7,
             "mbpp": 71.9
@@ -274,18 +224,15 @@
         "mobile_high_end"
       ],
       "best_for": [
-        "RAG",
-        "Q&A",
-        "Chatbots"
+        "Rag",
+        "Function Calling",
+        "Guardrails"
       ],
-      "not_for": [
-        "Medical Q&A",
-        "High-frequency function calling"
-      ],
-      "aggregate_score": 74.3,
+      "not_for": [],
+      "aggregate_score": 73.6,
       "date_added": "2026-01-14",
       "submitted_by": "slm-marketplace",
-      "rank": 3
+      "rank": 2
     },
     {
       "id": "llama-3.2-3b-instruct",
@@ -298,7 +245,7 @@
       "architecture": "Llama3",
       "use_cases": {
         "rag": {
-          "score": 79.4,
+          "score": 79.06666666666666,
           "benchmarks": {
             "niah": 81.2,
             "ruler": 78.1,
@@ -307,7 +254,7 @@
           "recommended": true
         },
         "function_calling": {
-          "score": 74.8,
+          "score": 73.05,
           "benchmarks": {
             "bfcl_v2": 74.8,
             "api_accuracy": 71.3
@@ -329,7 +276,7 @@
             "arc_challenge": 73.1,
             "hellaswag": 69.6
           },
-          "recommended": false
+          "recommended": true
         },
         "guardrails": {
           "score": 76.8,
@@ -338,7 +285,7 @@
             "bias": 74.1,
             "truthfulness": 76.1
           },
-          "recommended": false
+          "recommended": true
         }
       },
       "domain_scores": {
@@ -393,18 +340,16 @@
         "16gb_laptop"
       ],
       "best_for": [
+        "Rag",
         "Function Calling",
-        "Agentic workflows",
-        "RAG"
+        "Reasoning",
+        "Guardrails"
       ],
-      "not_for": [
-        "Coding tasks",
-        "Medical domain"
-      ],
-      "aggregate_score": 72.7,
+      "not_for": [],
+      "aggregate_score": 72.79,
       "date_added": "2026-01-14",
       "submitted_by": "slm-marketplace",
-      "rank": 4
+      "rank": 3
     },
     {
       "id": "gemma-2-2.6b-it",
@@ -423,10 +368,10 @@
             "ruler": 73.1,
             "frames": 75.1
           },
-          "recommended": false
+          "recommended": true
         },
         "function_calling": {
-          "score": 65.3,
+          "score": 63.7,
           "benchmarks": {
             "bfcl_v2": 65.3,
             "api_accuracy": 62.1
@@ -439,10 +384,10 @@
             "humaneval": 64.2,
             "mbpp": 73.2
           },
-          "recommended": true
+          "recommended": false
         },
         "reasoning": {
-          "score": 72.4,
+          "score": 72.39999999999999,
           "benchmarks": {
             "mmlu": 70.1,
             "arc_challenge": 74.3,
@@ -451,7 +396,7 @@
           "recommended": true
         },
         "guardrails": {
-          "score": 79.1,
+          "score": 79.10000000000001,
           "benchmarks": {
             "toxicity": 82.3,
             "bias": 76.8,
@@ -513,18 +458,15 @@
         "mobile_high_end"
       ],
       "best_for": [
+        "Rag",
         "Reasoning",
-        "Coding",
-        "Safety-critical apps"
+        "Guardrails"
       ],
-      "not_for": [
-        "Function calling",
-        "Real-time processing"
-      ],
-      "aggregate_score": 72.1,
+      "not_for": [],
+      "aggregate_score": 71.71,
       "date_added": "2026-01-14",
       "submitted_by": "slm-marketplace",
-      "rank": 5
+      "rank": 4
     },
     {
       "id": "smollm2-1.7b-instruct",
@@ -543,10 +485,10 @@
             "ruler": 69.8,
             "frames": 71.4
           },
-          "recommended": false
+          "recommended": true
         },
         "function_calling": {
-          "score": 76.2,
+          "score": 74.65,
           "benchmarks": {
             "bfcl_v2": 76.2,
             "api_accuracy": 73.1
@@ -554,7 +496,7 @@
           "recommended": true
         },
         "coding": {
-          "score": 58.4,
+          "score": 58.400000000000006,
           "benchmarks": {
             "humaneval": 52.1,
             "mbpp": 64.7
@@ -577,7 +519,7 @@
             "bias": 70.2,
             "truthfulness": 70.6
           },
-          "recommended": false
+          "recommended": true
         }
       },
       "domain_scores": {
@@ -633,18 +575,68 @@
         "8gb_laptop"
       ],
       "best_for": [
+        "Rag",
         "Function Calling",
-        "Edge deployment",
-        "Low-latency apps"
+        "Guardrails"
       ],
-      "not_for": [
-        "Complex reasoning",
-        "Long documents"
-      ],
-      "aggregate_score": 68.0,
+      "not_for": [],
+      "aggregate_score": 67.86,
       "date_added": "2026-01-14",
       "submitted_by": "slm-marketplace",
-      "rank": 6
+      "rank": 5
+    },
+    {
+      "id": "ministral-3b-instruct",
+      "name": "Ministral-3B-Instruct",
+      "family": "Ministral",
+      "hf_repo": "mistralai/Ministral-3B-Instruct-2410",
+      "parameters": "3B",
+      "license": "Mistral-Non-Commercial",
+      "context_window": 131072,
+      "architecture": "Mistral",
+      "use_cases": {
+        "rag": {
+          "score": 88.5,
+          "benchmarks": {
+            "niah": 91.2,
+            "ruler": 85.8
+          },
+          "recommended": true
+        },
+        "coding": {
+          "score": 74.2,
+          "benchmarks": {
+            "humaneval": 71.5,
+            "mbpp": 76.9
+          },
+          "recommended": true
+        }
+      },
+      "performance": {
+        "hardware": "GitHub Actions (2-core CPU)",
+        "quantizations": {
+          "q4": {
+            "size_gb": 1.8,
+            "ram_gb": 4.5,
+            "tps_output": 35.2,
+            "ttft_ms": 178
+          }
+        }
+      },
+      "tags": [
+        "mistral",
+        "high-accuracy",
+        "long-context"
+      ],
+      "aggregate_score": 33.26,
+      "date_added": "2026-01-14",
+      "submitted_by": "slm-marketplace",
+      "rank": 6,
+      "best_for": [
+        "Rag",
+        "Coding"
+      ],
+      "not_for": []
     },
     {
       "id": "doge-20m",
@@ -657,7 +649,7 @@
       "architecture": "Unknown",
       "use_cases": {
         "reasoning": {
-          "score": 0.0,
+          "score": 21.85215118789766,
           "benchmarks": {
             "arc_challenge": {
               "alias": "arc_challenge",
@@ -1019,7 +1011,7 @@
       "not_for": [
         "Reasoning"
       ],
-      "aggregate_score": 0.0,
+      "aggregate_score": 5.46,
       "date_added": "2026-01-14",
       "submitted_by": "unknown",
       "rank": 7

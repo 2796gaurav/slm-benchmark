@@ -1,6 +1,29 @@
 import json
 import os
-from scripts.update_registry import _average_score
+def _average_score(score_dict):
+    """Calculate mean score from dictionary values, handling lm-eval style metrics."""
+    if not score_dict:
+        return 0.0
+    
+    values = []
+    for v in score_dict.values():
+        if isinstance(v, dict):
+            acc_norm = v.get('acc_norm,none', v.get('acc_norm'))
+            acc = v.get('acc,none', v.get('acc'))
+            
+            if acc_norm is not None:
+                values.append(float(acc_norm) * 100)
+            elif acc is not None:
+                values.append(float(acc) * 100)
+            else:
+                for k, val in v.items():
+                    if 'acc' in k and isinstance(val, (int, float)):
+                        values.append(float(val) * 100)
+                        break
+        elif isinstance(v, (int, float)):
+            values.append(float(v))
+    
+    return sum(values) / len(values) if values else 0.0
 
 def recalculate_registry(registry_path):
     with open(registry_path, 'r') as f:
