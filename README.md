@@ -1,41 +1,100 @@
 ## ⚡ SLM Benchmark
 
-**CPU-first, transparent benchmarking platform for Small Language Models (≈1M–3B parameters).**
+**A focused, transparent benchmark for Small Language Models (≈1M–3B parameters).**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Website](https://img.shields.io/badge/leaderboard-live-green.svg)](https://2796gaurav.github.io/slm-benchmark)
 
-### 🎯 Mission
+### 🎯 What this project is
 
-Provide a **practical, CPU-friendly, and unbiased** evaluation platform for Small Language Models, so developers can
-pick the right model for edge devices and resource‑constrained environments.
+- **Small‑model first**: a leaderboard built specifically for SLMs (up to ~3B parameters), not giant frontier models.
+- **Unbiased by hardware**: the main ranking only uses accuracy‑style scores; latency, energy, and CO₂ are reported but
+  never used to reorder models.
+- **Transparent and inspectable**: every run produces JSON artifacts; the public registry and website data are
+  version‑controlled.
 
----
-
-### ✨ What You Get
-
-- **Hardware-agnostic ranking**: Aggregate scores ignore raw latency/throughput so results remain comparable across
-  machines (including GitHub Actions runners).
-- **SLM-focused tasks**: Reasoning, coding, math, language understanding, safety, and long‑context checks tuned for
-  small models.
-- **Transparent artifacts**: JSON outputs, registry, and website data are all version‑controlled.
-- **Zero build frontend**: Static HTML/CSS/JS leaderboard that reads a single `leaderboard.json` file.
+If you just want to browse the results, open the live site: `https://2796gaurav.github.io/slm-benchmark`.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 TL;DR for visitors
 
-### View the Leaderboard
+- **Leaderboard**: each row shows:
+  - Model name, family, and Hugging Face link.
+  - Aggregate score and per‑pillar scores (Reasoning, Coding, Math, Language, Safety, Edge).
+  - Informational metrics such as efficiency and estimated CO₂.
+  - Badges like **SLM‑Optimized**, **Eco‑Efficient**, **Safety‑Preferred** (non‑normative hints, not labels).
+- **Methodology**: see `website/methodology.html` or the “Benchmark Methodology” section below.
+- **How to submit a model**: see the next section, or the `website/submit.html` page on the live site.
 
-- Open the live site: `https://2796gaurav.github.io/slm-benchmark`
-- Each row shows:
-  - Model name, family, Hugging Face link.
-  - Aggregate score and per‑pillar scores.
-  - Efficiency / CO₂ metrics (informational only).
-  - Badges such as **SLM‑Optimized**, **Eco‑Efficient**, **Safety‑Preferred**.
+You do *not* need to run anything locally to read the leaderboard.
 
-### Run a Tiny CPU Smoke Test Locally
+---
+
+## 📝 How to submit your model
+
+There are two ways to get a model evaluated:
+
+- **For most users (recommended)** — open a GitHub Issue with a YAML snippet.
+- **For maintainers / power users** — run the benchmark yourself and update the registry.
+
+### 1. Describe your model in YAML
+
+Use this minimal schema:
+
+```yaml
+model:
+  name: "SmolLM2-1.7B"
+  family: "SmolLM"
+  hf_repo: "HuggingFaceTB/SmolLM2-1.7B"
+  parameters: "1.7B"           # must be ≤ 3B
+  architecture: "llama"
+  context_length: 8192
+  license: "Apache-2.0"
+
+  # Evaluation pillars you want to be considered in the aggregate score
+  categories:
+    - "reasoning"
+    - "coding"
+    - "math"
+    - "language"
+    - "safety"
+
+  # Optional: quantizations that were evaluated
+  quantizations:
+    - name: "FP16"
+      format: "safetensors"
+
+  # Submission metadata
+  submitted_by: "github_username"
+  contact: "email@example.com"
+```
+
+**Hard requirements**
+
+- Model size ≤ 3B parameters.
+- Model is public on Hugging Face.
+- License explicitly allows benchmarking and publishing results.
+
+For concrete examples, see `models/submissions/template.yml` and `models/submissions/tiny_test.yaml`.
+
+### 2. Open a “Model Submission” issue
+
+1. Go to the GitHub repository.
+2. Open a new issue using the **“Model Submission”** template.
+3. Paste your YAML into the description.
+
+The benchmark pipeline will:
+
+- Validate basic metadata (size, license, categories).
+- Schedule an evaluation run.
+- Update the internal registry and `website/assets/data/leaderboard.json`.
+
+Updates usually appear on the public leaderboard once maintainers or community runners have processed the run.
+
+### 3. (Optional) Run the benchmark yourself
+
+If you prefer to run everything locally and contribute results:
 
 ```bash
 git clone https://github.com/2796gaurav/slm-benchmark.git
@@ -46,10 +105,6 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pip install pytest
 
-# Force CPU
-export CUDA_VISIBLE_DEVICES=""
-
-# Run a tiny benchmark on a small public model
 python benchmarks/evaluation/run_benchmark.py \
   --submission-file models/submissions/tiny_test.yaml \
   --output-dir results/raw/ \
@@ -57,82 +112,30 @@ python benchmarks/evaluation/run_benchmark.py \
   --batch-size 1
 ```
 
-Artifacts will appear under `results/raw/TinyStories-1M-Verify/<timestamp>/`.
+Then use the scripts under `scripts/` (`generate_report.py`, `update_registry.py`, `update_website.py`) to fold the run
+into `models/registry.json` and refresh `website/assets/data/leaderboard.json`. See `DEVELOPER_GUIDE.md` for exact
+commands.
 
 ---
 
-## 📝 Submission Format (YAML)
+## 📊 Benchmark methodology (high level)
 
-Create a file in `models/submissions/`:
-
-```yaml
-model:
-  name: "SmolLM2-1.7B"
-  family: "SmolLM"
-  version: "2.0"
-
-  # Hugging Face details
-  hf_repo: "HuggingFaceTB/SmolLM2-1.7B"
-  hf_revision: "main"  # or a specific commit
-
-  # Model specifications
-  parameters: "1.7B"         # must be ≤ 3B
-  architecture: "llama"
-  context_length: 8192
-  license: "Apache-2.0"
-
-  # Quantizations to record (metadata only for now)
-  quantizations:
-    - name: "FP16"
-      format: "safetensors"
-
-  # Evaluation pillars (select all that apply)
-  categories:
-    - "reasoning"
-    - "coding"
-    - "math"
-    - "language"
-    - "safety"
-
-  # Submission metadata
-  submitted_by: "github_username"
-  submitted_date: "2026-01-13"
-  contact: "email@example.com"
-```
-
-**Requirements**
-
-- Model size ≤ 3B parameters.
-- Model is public on Hugging Face.
-- License explicitly allows benchmarking and publishing results.
-
-For a minimal example, see `models/submissions/template.yml` and `models/submissions/tiny_test.yaml`.
-
----
-
-## 📊 Benchmark Methodology (2026)
-
-### Deterministic, CPU-Friendly Runs
-
-- Fixed random seed: `42`.
-- Evaluation backend: `lm-evaluation-harness` via `HFLM` (Transformers).
-- Works on **CPU by default**; if a GPU is present, it may be used for speed but **scores are designed to be
-  hardware‑agnostic**.
-
-### Evaluation Pillars
+### Evaluation pillars
 
 - **Reasoning** — tasks like MMLU, ARC‑Challenge, HellaSwag, TruthfulQA.
-- **Coding** — tasks like HumanEval, MBPP (run with safe execution flags).
-- **Math** — tasks like GSM8K / Math QA.
+- **Coding** — tasks like HumanEval, MBPP (with safe‑execution flags).
+- **Math** — tasks like GSM8K / math QA.
 - **Language** — tasks like BoolQ, PIQA, WinoGrande.
-- **Safety** — lightweight toxicity, bias, and truthfulness probes (with optional Detoxify integration).
-- **Long context (informational)** — Needle‑in‑haystack and multi‑doc QA via `LongContextEvaluator`.
+- **Safety** — toxicity, bias, truthfulness, and fairness‑oriented probes.
+- **Long context** *(informational)* — needle‑in‑haystack and multi‑document QA (not part of the aggregate score).
+- **Edge / efficiency** *(informational)* — latency, memory, energy, and CO₂ estimates.
 
-### Aggregate Score (Used for Ranking)
+All pillars are implemented via `benchmarks/evaluation/*.py` on top of `lm-evaluation-harness` (`HFLM` backend) plus
+additional safety and bias checks.
 
-Hardware‑dependent metrics (latency, throughput, energy, CO₂) are **not** used in the aggregate score.
+### Aggregate score (used for ranking)
 
-We compute:
+The aggregate ranking score only uses accuracy‑style pillars:
 
 - Reasoning — 35%
 - Coding — 20%
@@ -146,28 +149,31 @@ Each pillar is normalized to \[0, 100\], then combined:
 Score_{final} = 0.35 \cdot R + 0.20 \cdot C + 0.15 \cdot M + 0.20 \cdot L + 0.20 \cdot S
 \\]
 
-Where \(R, C, M, L, S\) are the average scores per pillar.
+where \(R, C, M, L, S\) are average scores per pillar.
 
-### Hardware-Dependent Metrics (Informational Only)
+**Hardware‑dependent metrics (latency, throughput, energy, CO₂) are never included in this formula.** They are still
+recorded and shown on the website so users can decide their own trade‑offs, but they do not affect rank.
 
-When enabled, we also report:
+### Unbiasedness and fairness philosophy
 
-- **Latency / Throughput** (EdgeBenchmark).
-- **Memory usage** (CPU or GPU if available).
-- **Energy & CO₂** (CodeCarbon via `CarbonTrackerWrapper`).
-- **Heuristic fine‑tuning friendliness** (no real fine‑tuning runs).
+- **Hardware neutrality**: rankings do not depend on which GPU/CPU ran the benchmark; only accuracy‑like scores matter.
+- **Task diversity**: we mix reasoning, coding, math, language, and safety so that no single style of model dominates.
+- **Explicit safety reporting**: safety and fairness signals are surfaced as a first‑class pillar rather than hidden
+  footnotes.
+- **Transparent artifacts**: every run keeps full JSON artifacts, so anyone can recompute alternative scores or audit
+  the results.
 
-These appear in the JSON, registry, and website, but are **not** part of the aggregate ranking.
+For implementation details, see `benchmarks/evaluation/run_benchmark.py` and `DEVELOPER_GUIDE.md`.
 
 ---
 
-## 🧱 Repository Layout
+## 🧱 Repository layout (for developers)
 
 ```text
 slm-benchmark/
   benchmarks/
     evaluation/        # Benchmark runner and evaluation modules
-    configs/           # High-level configs (currently informational)
+    configs/           # High-level configs
     validation/        # Auto-detection tools for HF models
   models/
     registry.json      # Source of truth for leaderboard
@@ -184,62 +190,35 @@ slm-benchmark/
     index.html, model.html, methodology.html, submit.html, support.html
     assets/css, assets/js, assets/data/leaderboard.json
   .github/workflows/
-    ci.yml             # CPU-only test workflow
+    ci.yml             # Test workflow
 ```
 
-See `DEVELOPER_GUIDE.md` for a deeper architectural walkthrough.
+If you want to extend or integrate with the benchmark, start with `DEVELOPER_GUIDE.md`.
 
 ---
 
-## 🤖 GitHub Actions & CPU CI
+## 🧩 Docs & support
 
-- `.github/workflows/ci.yml` runs:
-  - `pip install -r requirements.txt`
-  - `pytest`
-- Defaults:
-  - `CUDA_VISIBLE_DEVICES` is cleared so runs do not assume a GPU.
-  - Tests are designed to be fast and network‑light (no heavy HF downloads).
+- **How to contribute**: `CONTRIBUTING.md`
+- **Developer internals**: `DEVELOPER_GUIDE.md`
+- **Troubleshooting runs**: `TROUBLESHOOTING.md`
+- **Support & contact**: `SUPPORT.md` and the `website/support.html` page
 
-You can mirror this pattern in your own repositories when using SLM Benchmark as a reference.
+Maintainer: **@2796gaurav** (GitHub). Please prefer public Issues / Discussions so others can learn from the answers.
 
 ---
 
-## 🔖 Badges & Model Metadata
-
-The website dynamically assigns **non‑normative badges** based on JSON metadata:
-
-- **SLM‑Optimized** — parameters ≤ 500M.
-- **Eco‑Efficient** — high efficiency score (good accuracy / kWh where energy data is available).
-- **Safety‑Preferred** — safety pillar score ≥ 90.
-
-Badges are meant as guidance, not absolute labels; for research‑grade analysis always inspect the full JSON metrics.
-
----
-
-## 🧩 Docs & Support
-
-- **Contribution guidelines**: `CONTRIBUTING.md`
-- **Developer guide**: `DEVELOPER_GUIDE.md`
-- **Troubleshooting**: `TROUBLESHOOTING.md`
-- **Support**: `SUPPORT.md` (and the `website/support.html` page)
-
-Maintainer: **@2796gaurav** (GitHub). Please prefer GitHub Issues / Discussions for questions.
-
----
-
-## 📜 License & Acknowledgements
+## 📜 License & acknowledgements
 
 - License: **Apache 2.0** (see `LICENSE`).
 - Built on:
   - **EleutherAI** — `lm-evaluation-harness`
   - **Hugging Face** — Transformers and model hosting
-  - **CodeCarbon** — emission and energy tracking (optional)
-
----
+  - **CodeCarbon** — optional emission and energy tracking
 
 <div align="center">
 
-**⚡ Built with care for the SLM community.**
+**⚡ Built for the SLM community.**
 
 [![Star on GitHub](https://img.shields.io/github/stars/2796gaurav/slm-benchmark?style=social)](https://github.com/2796gaurav/slm-benchmark)
 

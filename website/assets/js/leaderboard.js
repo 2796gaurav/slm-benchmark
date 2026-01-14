@@ -105,28 +105,52 @@ class LeaderboardManager {
     }
 
     renderCategoryTags() {
-        const categories = new Set(['Reasoning', 'Coding', 'Math', 'Language', 'Edge', 'Efficiency', 'Safety']);
+        const baseCategories = {
+            reasoning: { emoji: '🧠', label: 'Reasoning', description: 'Logical and commonsense reasoning tasks (e.g. MMLU, ARC-Challenge, HellaSwag, TruthfulQA).' },
+            coding: { emoji: '💻', label: 'Coding', description: 'Code generation and problem-solving tasks (e.g. HumanEval, MBPP).' },
+            math: { emoji: '🔢', label: 'Math', description: 'Multi-step quantitative reasoning (e.g. GSM8K, math QA).' },
+            language: { emoji: '📚', label: 'Language', description: 'Language understanding and reading comprehension (e.g. BoolQ, PIQA, WinoGrande).' },
+            safety: { emoji: '🛡️', label: 'Safety', description: 'Lightweight safety, bias, and truthfulness probes.' },
+            edge: { emoji: '📱', label: 'Edge', description: 'Edge-centric metrics like latency and memory usage (informational only).' },
+            efficiency: { emoji: '⚡', label: 'Efficiency', description: 'Energy-efficiency and carbon metrics (informational only).' }
+        };
+
+        // Merge any custom categories from models to keep things future-proof
         this.data.forEach(model => {
-            if (model.categories) {
-                model.categories.forEach(cat => categories.add(cat.charAt(0).toUpperCase() + cat.slice(1)));
-            }
+            (model.categories || []).forEach(catRaw => {
+                const key = catRaw.toLowerCase();
+                if (!baseCategories[key]) {
+                    baseCategories[key] = {
+                        emoji: '🏷️',
+                        label: catRaw,
+                        description: `${catRaw} category`
+                    };
+                }
+            });
         });
 
         const container = document.getElementById('category-tags');
+        if (!container) return;
         container.innerHTML = ''; // Clear old tags
-        categories.forEach(category => {
-            const tag = document.createElement('div');
-            tag.className = 'tag';
-            tag.textContent = category;
+
+        Object.entries(baseCategories).forEach(([key, meta]) => {
+            const tag = document.createElement('button');
+            tag.type = 'button';
+            tag.className = 'tag tag-emoji';
+            tag.title = `${meta.label}: ${meta.description}`;
+            tag.setAttribute('aria-label', `${meta.label} category filter`);
+            tag.innerHTML = `<span class="tag-emoji-inner">${meta.emoji}</span>`;
+
             tag.addEventListener('click', () => {
                 tag.classList.toggle('active');
-                if (this.filters.categories.has(category.toLowerCase())) {
-                    this.filters.categories.delete(category.toLowerCase());
+                if (this.filters.categories.has(key)) {
+                    this.filters.categories.delete(key);
                 } else {
-                    this.filters.categories.add(category.toLowerCase());
+                    this.filters.categories.add(key);
                 }
                 this.applyFilters();
             });
+
             container.appendChild(tag);
         });
     }

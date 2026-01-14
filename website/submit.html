@@ -63,6 +63,7 @@
                         <li><a href="index.html#leaderboard">Leaderboard</a></li>
                         <li><a href="methodology.html">Methodology</a></li>
                         <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="support.html">Support</a></li>
                         <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
                     </ul>
                     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
@@ -87,7 +88,7 @@
                     <div class="step-content">
                         <h3>Prepare your YAML</h3>
                         <p>Create a submission file containing your model metadata. Ensure the model is publicly
-                            accessible on Hugging Face.</p>
+                            accessible on Hugging Face and fits the Small Language Model focus (≤ 3B parameters).</p>
                         <pre>
 model:
   name: "YourModelName-1.1B"
@@ -106,7 +107,8 @@ model:
                     <div class="step-content">
                         <h3>Open an Issue</h3>
                         <p>Go to our GitHub repository and open a new issue using the "Model Submission" template. Paste
-                            your YAML in the description.</p>
+                            your YAML in the description. The benchmark runner validates basic metadata, license, and
+                            size limits before scheduling a run.</p>
                         <a href="https://github.com/2796gaurav/slm-benchmark/issues/new" target="_blank"
                             class="model-link" style="display: inline-block; margin-top: 0.5rem; font-weight: 600;">Open
                             GitHub Issues →</a>

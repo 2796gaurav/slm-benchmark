@@ -57,6 +57,7 @@
                         <li><a href="index.html#leaderboard">Leaderboard</a></li>
                         <li><a href="methodology.html">Methodology</a></li>
                         <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="support.html">Support</a></li>
                         <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
                     </ul>
                     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
@@ -99,8 +100,8 @@
                     </div>
                     <div class="task-card">
                         <h3>📱 Edge Performance</h3>
-                        <p>Specialized metrics for CPU latency, memory footprint, and energy efficiency via CodeCarbon.
-                        </p>
+                        <p>Specialized metrics for latency, memory footprint, and on-device friendliness. These are
+                            reported for transparency but kept separate from ranking to remain hardware-agnostic.</p>
                     </div>
                     <div class="task-card">
                         <h3>🛡️ Safety</h3>
@@ -111,11 +112,18 @@
 
             <div class="card">
                 <h2>Aggregate Score Calculation</h2>
-                <p>The aggregate score is a weighted average of all pillars, normalized to a 0-100 scale.</p>
+                <p>The aggregate score is a weighted average of the core pillars, normalized to a 0–100 scale. Hardware
+                    and energy metrics are intentionally excluded to keep rankings comparable across very different
+                    machines.</p>
                 <code
                     style="display: block; background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: 'JetBrains Mono', monospace;">
-                    Score = (Reasoning*0.35 + Coding*0.20 + Math*0.15 + Language*0.15 + Edge*0.10 + Safety*0.05)
+                    Score = 0.35·Reasoning + 0.20·Coding + 0.15·Math + 0.20·Language + 0.20·Safety
                 </code>
+                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Safety itself bundles multiple probes (toxicity, bias, truthfulness, and fairness heuristics). Edge
+                    and energy/carbon metrics are still published alongside scores so users can make their own trade-off
+                    decisions without them affecting rank.
+                </p>
             </div>
         </div>
     </main>

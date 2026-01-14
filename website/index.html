@@ -54,13 +54,13 @@
                         aria-label="Search models" style="flex: 2;">
 
                     <div class="filter-group">
-                        <select id="sort" aria-label="Sort by">
+                        <select id="sort" aria-label="Sort leaderboard by metric">
                             <option value="rank">Sort: Rank</option>
                             <option value="aggregate">Aggregate Score</option>
                             <option value="reasoning">Reasoning</option>
                             <option value="coding">Coding</option>
                             <option value="language">Language</option>
-                            <option value="efficiency">Efficiency</option>
+                            <option value="efficiency">Energy-Efficiency Score</option>
                         </select>
                     </div>
 
@@ -77,7 +77,7 @@
 
                 <div class="tags-container" style="margin-top: 1.25rem; display: flex; align-items: center; gap: 1rem;">
                     <span
-                        style="font-size: 0.7rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase;">Categories:</span>
+                        style="font-size: 0.7rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase;">Categories (hover to see what we test):</span>
                     <div class="tags" id="category-tags" style="margin-top: 0;"></div>
                 </div>
             </section>
@@ -103,19 +103,42 @@
                     <table id="leaderboard-table" style="display: none;">
                         <thead>
                             <tr>
-                                <th class="sortable" data-sort="rank">Rank</th>
-                                <th class="sortable" data-sort="model">Model</th>
-                                <th class="sortable" data-sort="parameters">Params</th>
-                                <th class="sortable" data-sort="aggregate">Aggregate</th>
-                                <th class="sortable" data-sort="reasoning">Reasoning</th>
-                                <th class="sortable" data-sort="coding">Coding</th>
-                                <th class="sortable" data-sort="math">Math</th>
-                                <th class="sortable" data-sort="language">Language</th>
-                                <th class="sortable" data-sort="safety">Safety</th>
-                                <th class="sortable" data-sort="edge">Edge</th>
-                                <th class="sortable" data-sort="efficiency">EE Score</th>
-                                <th class="sortable" data-sort="co2">CO₂/1k</th>
-                                <th>Quant</th>
+                                <th class="sortable" data-sort="rank"
+                                    title="Overall ordering based on the aggregate score (higher is better).">Rank</th>
+                                <th class="sortable" data-sort="model"
+                                    title="Model name and family, with a link to the Hugging Face repository.">Model</th>
+                                <th class="sortable" data-sort="parameters"
+                                    title="Reported parameter count of the model (e.g. 135M, 1.7B).">Params</th>
+                                <th class="sortable" data-sort="aggregate"
+                                    title="Single score (0–100) combining reasoning, coding, math, language, and safety. Hardware-dependent metrics are excluded.">
+                                    Aggregate</th>
+                                <th class="sortable" data-sort="reasoning"
+                                    title="Reasoning benchmarks: tasks like MMLU, ARC-Challenge, HellaSwag, TruthfulQA.">
+                                    Reasoning</th>
+                                <th class="sortable" data-sort="coding"
+                                    title="Coding benchmarks: tasks like HumanEval and MBPP for code generation quality.">
+                                    Coding</th>
+                                <th class="sortable" data-sort="math"
+                                    title="Math benchmarks: tasks like GSM8K / math QA for multi-step quantitative reasoning.">
+                                    Math</th>
+                                <th class="sortable" data-sort="language"
+                                    title="Language benchmarks: tasks like BoolQ, PIQA, WinoGrande for general language understanding.">
+                                    Language</th>
+                                <th class="sortable" data-sort="safety"
+                                    title="Safety probes (including bias & truthfulness). Higher is safer; see methodology for details.">
+                                    Safety</th>
+                                <th class="sortable" data-sort="edge"
+                                    title="Edge-centric metrics (latency, memory, etc.). Reported for context, not used in ranking.">
+                                    Edge</th>
+                                <th class="sortable" data-sort="efficiency"
+                                    title="Energy-Efficiency Score: aggregate accuracy divided by estimated energy (kWh). Informational only; not used for ranking.">
+                                    Energy‑Efficiency Score</th>
+                                <th class="sortable" data-sort="co2"
+                                    title="Estimated kilograms of CO₂ emitted per 1,000 tokens during the benchmark (when tracking is enabled).">
+                                    CO₂ / 1k tokens</th>
+                                <th
+                                    title="Quantization formats evaluated for this model (e.g. FP16, Q4_K_M).">
+                                    Quant</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-body"></tbody>
