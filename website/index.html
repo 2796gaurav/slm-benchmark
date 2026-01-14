@@ -599,91 +599,33 @@
     </footer>
 
     <script>
-        const modelData = {
-            models: [
-                {
-                    id: "qwen2.5-3b-instruct",
-                    name: "Qwen2.5-3B-Instruct",
-                    family: "Qwen",
-                    hf_repo: "Qwen/Qwen2.5-3B-Instruct",
-                    parameters: "3.1B",
-                    use_cases: { rag: { score: 87.3 }, coding: { score: 65.3 }, reasoning: { score: 68.2 } },
-                    performance: { quantizations: { q4: { tps_output: 38.7, ram_gb: 4.1 } } },
-                    aggregate_score: 74.3,
-                    context_window: 32768,
-                    tags: ["multilingual", "edge-ready"],
-                    best_for: ["RAG Specialists", "Multi-turn Chat"]
-                },
-                {
-                    id: "phi-3.5-mini-3.8b",
-                    name: "Phi-3.5-Mini-3.8B",
-                    family: "Phi",
-                    hf_repo: "microsoft/Phi-3.5-mini-instruct",
-                    parameters: "3.8B",
-                    use_cases: { rag: { score: 82.1 }, coding: { score: 71.8 }, reasoning: { score: 75.6 } },
-                    performance: { quantizations: { q4: { tps_output: 32.1, ram_gb: 5.2 } } },
-                    aggregate_score: 75.8,
-                    context_window: 131072,
-                    tags: ["reasoning", "long-context"],
-                    best_for: ["Logical Reasoning", "Complex Coding"]
-                },
-                {
-                    id: "llama-3.2-3b-instruct",
-                    name: "Llama-3.2-3B-Instruct",
-                    family: "Llama",
-                    hf_repo: "meta-llama/Llama-3.2-3B-Instruct",
-                    parameters: "3.2B",
-                    use_cases: { rag: { score: 79.4 }, function_calling: { score: 74.8 } },
-                    performance: { quantizations: { q4: { tps_output: 36.4, ram_gb: 3.8 } } },
-                    aggregate_score: 72.7,
-                    context_window: 131072,
-                    tags: ["function-calling", "multilingual"],
-                    best_for: ["Tool Use", "Agents"]
-                },
-                {
-                    id: "smollm2-1.7b-instruct",
-                    name: "SmolLM2-1.7B-Instruct",
-                    family: "SmolLM",
-                    hf_repo: "HuggingFaceTB/SmolLM2-1.7B-Instruct",
-                    parameters: "1.7B",
-                    use_cases: { function_calling: { score: 76.2 }, rag: { score: 71.2 } },
-                    performance: { quantizations: { q4: { tps_output: 48.2, ram_gb: 2.1 } } },
-                    aggregate_score: 68.0,
-                    context_window: 8192,
-                    tags: ["lightweight", "fast-inference"],
-                    best_for: ["Raspberry Pi", "Low-RAM Devices"]
-                },
-                {
-                    id: "gemma-2-2.6b-it",
-                    name: "Gemma-2-2.6B-IT",
-                    family: "Gemma",
-                    hf_repo: "google/gemma-2-2b-it",
-                    parameters: "2.6B",
-                    use_cases: { reasoning: { score: 72.4 }, coding: { score: 68.7 } },
-                    performance: { quantizations: { q4: { tps_output: 42.1, ram_gb: 3.4 } } },
-                    aggregate_score: 72.1,
-                    context_window: 8192,
-                    tags: ["google", "safe"],
-                    best_for: ["Safety Critical", "General Q&A"]
-                },
-                {
-                    id: "ministral-3b-instruct",
-                    name: "Ministral-3B-Instruct",
-                    family: "Ministral",
-                    hf_repo: "mistralai/Ministral-3B-Instruct-2410",
-                    parameters: "3.0B",
-                    use_cases: { rag: { score: 88.5 }, coding: { score: 74.2 } },
-                    performance: { quantizations: { q4: { tps_output: 35.2, ram_gb: 4.5 } } },
-                    aggregate_score: 81.3,
-                    context_window: 131072,
-                    tags: ["mistral", "high-accuracy"],
-                    best_for: ["Enterprise RAG", "Instruction Following"]
-                }
-            ]
-        };
-
-        let allModels = modelData.models;
+        let allModels = [];
         let currentFilter = 'all';
+
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const grid = document.getElementById('model-grid');
+            loading.style.display = 'block';
+            grid.innerHTML = '';
+
+            try {
+                const response = await fetch('./assets/data/leaderboard.json');
+                if (!response.ok) throw new Error('Failed to load leaderboard data');
+                const data = await response.json();
+                allModels = Array.isArray(data) ? data : (data.models || []);
+
+                if (allModels.length === 0) {
+                    grid.innerHTML = '<div class="loading"><p>No models indexed yet. Start by submitting a new model!</p></div>';
+                } else {
+                    renderModels(allModels);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                grid.innerHTML = `<div class="loading"><p style="color: #ef4444;">Error loading models: ${error.message}</p></div>`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
 
         function renderModels(models) {
             const grid = document.getElementById('model-grid');
@@ -772,7 +714,7 @@
 
         document.getElementById('search-input').addEventListener('input', applyFilters);
 
-        renderModels(allModels);
+        loadData();
     </script>
 </body>
 

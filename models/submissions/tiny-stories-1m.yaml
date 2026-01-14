@@ -1,0 +1,10 @@
+model:
+  name: "TinyStories-1M"
+  hf_repo: "roneneldan/TinyStories-1M"
+  family: "TinyStories"
+  parameters: "1M"
+  license: "Apache-2.0"
+  architecture: "GPT-Neo"
+  context_window: 512
+  submitted_by: "gaurav"
+  tags: ["research", "synthetic", "educational"]
