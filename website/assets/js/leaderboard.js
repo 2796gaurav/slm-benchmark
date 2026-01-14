@@ -106,13 +106,13 @@ class LeaderboardManager {
 
     renderCategoryTags() {
         const baseCategories = {
-            reasoning: { emoji: '🧠', label: 'Reasoning', description: 'Logical and commonsense reasoning tasks (e.g. MMLU, ARC-Challenge, HellaSwag, TruthfulQA).' },
-            coding: { emoji: '💻', label: 'Coding', description: 'Code generation and problem-solving tasks (e.g. HumanEval, MBPP).' },
-            math: { emoji: '🔢', label: 'Math', description: 'Multi-step quantitative reasoning (e.g. GSM8K, math QA).' },
-            language: { emoji: '📚', label: 'Language', description: 'Language understanding and reading comprehension (e.g. BoolQ, PIQA, WinoGrande).' },
-            safety: { emoji: '🛡️', label: 'Safety', description: 'Lightweight safety, bias, and truthfulness probes.' },
-            edge: { emoji: '📱', label: 'Edge', description: 'Edge-centric metrics like latency and memory usage (informational only).' },
-            efficiency: { emoji: '⚡', label: 'Efficiency', description: 'Energy-efficiency and carbon metrics (informational only).' }
+            reasoning: { label: 'Reasoning', description: 'Logical and commonsense reasoning tasks (e.g. MMLU, ARC-Challenge, HellaSwag, TruthfulQA).' },
+            coding: { label: 'Coding', description: 'Code generation and problem-solving tasks (e.g. HumanEval, MBPP).' },
+            math: { label: 'Math', description: 'Multi-step quantitative reasoning (e.g. GSM8K, math QA).' },
+            language: { label: 'Language', description: 'Language understanding and reading comprehension (e.g. BoolQ, PIQA, WinoGrande).' },
+            safety: { label: 'Safety', description: 'Lightweight safety, bias, and truthfulness probes.' },
+            edge: { label: 'Edge', description: 'Edge-centric metrics like latency and memory usage (informational only).' },
+            efficiency: { label: 'Efficiency', description: 'Energy-efficiency and carbon metrics (informational only).' }
         };
 
         // Merge any custom categories from models to keep things future-proof
@@ -121,7 +121,6 @@ class LeaderboardManager {
                 const key = catRaw.toLowerCase();
                 if (!baseCategories[key]) {
                     baseCategories[key] = {
-                        emoji: '🏷️',
                         label: catRaw,
                         description: `${catRaw} category`
                     };
@@ -136,10 +135,10 @@ class LeaderboardManager {
         Object.entries(baseCategories).forEach(([key, meta]) => {
             const tag = document.createElement('button');
             tag.type = 'button';
-            tag.className = 'tag tag-emoji';
+            tag.className = 'tag';
             tag.title = `${meta.label}: ${meta.description}`;
             tag.setAttribute('aria-label', `${meta.label} category filter`);
-            tag.innerHTML = `<span class="tag-emoji-inner">${meta.emoji}</span>`;
+            tag.textContent = meta.label;
 
             tag.addEventListener('click', () => {
                 tag.classList.toggle('active');
@@ -248,19 +247,19 @@ class LeaderboardManager {
     }
 
     getBadgesForModel(model) {
-        const badges = [];
+        const emojis = [];
         const params = this.parseParameters(model.parameters);
 
         if (params > 0 && params <= 500e6) {
-            badges.push('<span class="badge badge-tag">SLM‑Optimized</span>');
+            emojis.push('🎯');
         }
         if (model.efficiency_score && model.efficiency_score >= 1000) {
-            badges.push('<span class="badge badge-green">Eco‑Efficient</span>');
+            emojis.push('🌱');
         }
         if (model.scores && model.scores.safety && model.scores.safety >= 90) {
-            badges.push('<span class="badge badge-blue">Safety‑Preferred</span>');
+            emojis.push('🛡️');
         }
-        return badges.join(' ');
+        return emojis.join('');
     }
 
     renderTable() {
@@ -281,10 +280,16 @@ class LeaderboardManager {
         this.filteredData.forEach((model, index) => {
             const row = document.createElement('tr');
 
-            // Rank
+            // Rank with badges
             const rankClass = index < 3 ? `rank-${index + 1}` : '';
+            const badgeEmojis = this.getBadgesForModel(model);
             row.innerHTML = `
-                <td class="rank ${rankClass}">#${index + 1}</td>
+                <td class="rank ${rankClass}">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <span>#${index + 1}</span>
+                        <span style="font-size: 0.9rem; line-height: 1;">${badgeEmojis}</span>
+                    </div>
+                </td>
                 
                 <td>
                     <a href="model.html?id=${model.id}" class="model-name-link" style="text-decoration: none;">
@@ -292,9 +297,6 @@ class LeaderboardManager {
                     </a>
                     <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 2px;">
                         ${model.family} • <a href="https://huggingface.co/${model.hf_repo}" target="_blank" style="color: var(--speed-cyan); text-decoration: none;">HF Repository</a>
-                    </div>
-                    <div style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
-                        ${this.getBadgesForModel(model)}
                     </div>
                 </td>
                 
