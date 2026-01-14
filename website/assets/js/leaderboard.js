@@ -241,8 +241,13 @@ class LeaderboardManager {
                 <td class="rank ${rankClass}">#${index + 1}</td>
                 
                 <td>
-                    <div class="model-name">${model.name}</div>
+                    <a href="model.html?id=${model.id}" class="model-name-link">
+                        <div class="model-name">${model.name}</div>
+                    </a>
                     <div style="font-size: 0.875rem; color: var(--text-muted);">${model.family}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        via <a href="https://huggingface.co/${model.hf_repo}" target="_blank" style="color: var(--speed-cyan);">HuggingFace</a>
+                    </div>
                 </td>
                 
                 <td>
@@ -269,12 +274,10 @@ class LeaderboardManager {
                 </td>
                 
                 <td>
-                    <a href="https://huggingface.co/${model.hf_repo}" 
-                       target="_blank" 
-                       class="model-link">🤗 HF</a>
-                    <br>
-                    <a href="model.html?id=${model.id}" 
-                       class="model-link">📊 Details</a>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <a href="model.html?id=${model.id}" class="btn-sm">📊 Details</a>
+                        <a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="btn-sm btn-outline">🤗 HF Repo</a>
+                    </div>
                 </td>
             `;
 

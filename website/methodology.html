@@ -97,16 +97,24 @@
                         <p>Specialized metrics for CPU latency, memory footprint, and energy efficiency via CodeCarbon.
                         </p>
                     </div>
+                    <div class="task-card">
+                        <h3>🛠️ Tool Use</h3>
+                        <p>Evaluated using Berkeley Function Calling Leaderboard (BFCL) subsets. Tests function calling
+                            accuracy.</p>
+                    </div>
+                    <div class="task-card">
+                        <h3>🛡️ Safety</h3>
+                        <p>Uses JailbreakBench and internal safety probes to ensure model alignment and reliability.</p>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <h2>Aggregate Score Calculation</h2>
-                <p>The aggregate score is a weighted average of all pillars, normalized to a 0-100 scale. We apply a
-                    penalty for models with high memory usage relative to their parameter count.</p>
+                <p>The aggregate score is a weighted average of all pillars, normalized to a 0-100 scale.</p>
                 <code
                     style="display: block; background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: 'JetBrains Mono', monospace;">
-                    Score = (Reasoning*0.3 + Coding*0.2 + Math*0.2 + Lang*0.2 + Edge*0.1)
+                    Score = (Reasoning*0.30 + Coding*0.20 + Math*0.15 + Language*0.12 + Edge*0.10 + ToolUse*0.08 + Safety*0.05)
                 </code>
             </div>
         </div>

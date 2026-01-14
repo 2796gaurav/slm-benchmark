@@ -130,10 +130,20 @@
                         </div>
                     </div>
                     <div class="card">
-                        <h2>Model Metadata</h2>
+                        <h2>Model Metadata & Efficiency</h2>
                         <div id="metadata-list">
                             <!-- Metadata populated by JS -->
                         </div>
+                    </div>
+                </div>
+
+                <div class="grid"
+                    style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); margin-top: 2rem;">
+                    <div class="card">
+                        <canvas id="efficiencyChart" height="300"></canvas>
+                    </div>
+                    <div class="card">
+                        <canvas id="carbonChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
@@ -152,6 +162,7 @@
         </div>
     </footer>
 
+    <script src="assets/js/carbon-viz.js"></script>
     <script src="assets/js/model-comparison.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
@@ -208,14 +219,17 @@
                     }, 100);
                 });
 
-                // Metadata
+                // Metadata & Environmental
                 const metaList = document.getElementById('metadata-list');
                 const metadata = {
                     'Architecture': model.architecture || 'N/A',
                     'Context Length': model.context_length ? `${model.context_length} tokens` : 'N/A',
-                    'Submitted By': model.submitted_by || 'Anonymous',
+                    'Source Repo': model.hf_repo || 'N/A',
+                    'Efficiency Score': model.efficiency_score ? `${model.efficiency_score.toFixed(2)}` : 'N/A',
+                    'CO2 Emissions': model.co2_kg ? `${model.co2_kg.toFixed(4)} kg/1k` : 'N/A',
+                    'Energy Consumption': model.energy_kwh ? `${model.energy_kwh.toFixed(4)} kWh/1k` : 'N/A',
                     'Date Added': model.date_added || 'N/A',
-                    'Quantizations Available': model.quantizations ? model.quantizations.map(q => q.name).join(', ') : 'None'
+                    'Quantizations': model.quantizations ? model.quantizations.map(q => q.name).join(', ') : 'None'
                 };
 
                 Object.entries(metadata).forEach(([key, value]) => {
@@ -236,6 +250,14 @@
                     const tool = new ModelComparisonTool();
                     tool.selectedModels = [model];
                     tool.renderRadarChart();
+                }
+
+                // Initialize Environmental Charts (Comparing with others)
+                if (window.CarbonVisualization) {
+                    const viz = new CarbonVisualization();
+                    // We pass all models for context in scatter/bar comparison
+                    viz.renderEfficiencyScatterPlot(models);
+                    viz.renderCarbonComparison(models);
                 }
 
             } catch (error) {

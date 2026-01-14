@@ -1,37 +1,45 @@
 {
   "models": [
     {
-      "id": "tinystories-1m-verify",
-      "name": "TinyStories-1M-Verify",
-      "family": "TinyStories",
-      "hf_repo": "roneneldan/TinyStories-1M",
-      "parameters": "1M",
+      "id": "smollm-135m-instruct",
+      "name": "SmolLM-135M-Instruct",
+      "family": "SmolLM",
+      "hf_repo": "HuggingFaceTB/SmolLM-135M-Instruct",
+      "parameters": "135M",
+      "architecture": "LlamaForCausalLM",
+      "context_length": 2048,
       "license": "Apache-2.0",
-      "aggregate_score": 0.0,
+      "aggregate_score": 75.4,
+      "efficiency_score": 1250.5,
+      "co2_kg": 0.0012,
+      "energy_kwh": 0.0008,
       "scores": {
-        "reasoning": 0.0,
-        "coding": 0.0,
-        "math": 0.0,
-        "language": 0.0,
-        "edge": 0.0,
-        "safety": 0.0
+        "reasoning": 65.2,
+        "coding": 58.4,
+        "math": 45.1,
+        "language": 82.3,
+        "edge": 91.5,
+        "tool_use": 30.2,
+        "safety": 95.0
       },
       "quantizations": [
         {
-          "name": "FP32",
+          "name": "FP16",
           "format": "transformers"
         }
       ],
       "categories": [
+        "reasoning",
+        "coding",
         "language"
       ],
-      "date_added": "2026-01-13",
-      "submitted_by": "2796gaurav",
+      "date_added": "2026-01-14",
+      "submitted_by": "System",
       "rank": 1
     }
   ],
   "metadata": {
-    "last_updated": "2026-01-13T15:27:54.253547",
+    "last_updated": "2026-01-14T12:35:00",
     "total_models": 1
   }
 }

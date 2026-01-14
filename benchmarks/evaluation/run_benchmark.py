@@ -487,7 +487,9 @@ def main():
             all_results.append({
                 'quantization': quant_info['name'],
                 'result_file': str(result_file),
-                'aggregate_score': result.aggregate_score
+                'aggregate_score': result.aggregate_score,
+                'efficiency_score': result.efficiency_score,
+                'environmental_metrics': result.environmental_metrics
             })
             
         except Exception as e:
