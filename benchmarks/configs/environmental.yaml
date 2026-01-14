@@ -1,0 +1,20 @@
+environmental_metrics:
+  energy_consumption:
+    - metric: "watts_per_token"
+      unit: "W/token"
+      collection_method: "codecarbon"
+    - metric: "total_energy_kwh"
+      unit: "kWh"
+      duration: "1000_queries"
+  
+  carbon_footprint:
+    - metric: "co2_emissions"
+      unit: "gCO2e/query"
+      grid_carbon_intensity: "regional"
+    - metric: "water_consumption"
+      unit: "liters/1000_queries"
+      estimate_method: "datacenter_pue"
+  
+  efficiency_score:
+    formula: "(accuracy / energy_consumption) * 100"
+    weight: 0.10  # 10% of total score

@@ -13,6 +13,7 @@
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .radar-chart {
             width: 300px;
@@ -96,22 +97,27 @@
                         </div>
                     </div>
 
-                    <div class="grid">
-                        <div class="stat-item">
-                            <div class="stat-label">Parameters</div>
-                            <div id="stat-params" class="stat-value">-</div>
+                    <div class="grid" style="grid-template-columns: 1fr auto; gap: 2rem; align-items: center;">
+                        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;">
+                            <div class="stat-item">
+                                <div class="stat-label">Parameters</div>
+                                <div id="stat-params" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Aggregate Score</div>
+                                <div id="stat-aggregate" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">License</div>
+                                <div id="stat-license" class="stat-value">-</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Rank</div>
+                                <div id="stat-rank" class="stat-value">-</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Aggregate Score</div>
-                            <div id="stat-aggregate" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">License</div>
-                            <div id="stat-license" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Rank</div>
-                            <div id="stat-rank" class="stat-value">-</div>
+                        <div class="chart-container" style="width: 300px; height: 300px;">
+                            <canvas id="radarChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -146,6 +152,7 @@
         </div>
     </footer>
 
+    <script src="assets/js/model-comparison.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
         async function loadModel() {
@@ -223,6 +230,13 @@
 
                 document.getElementById('loading-state').style.display = 'none';
                 document.getElementById('content-state').style.display = 'block';
+
+                // Initialize Radar Chart
+                if (window.ModelComparisonTool) {
+                    const tool = new ModelComparisonTool();
+                    tool.selectedModels = [model];
+                    tool.renderRadarChart();
+                }
 
             } catch (error) {
                 console.error('Error:', error);

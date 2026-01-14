@@ -1,0 +1,23 @@
+tool_use_evaluation:
+  benchmarks:
+    - name: "BFCL-Simple"
+      description: "Single function calling"
+      metric: "accuracy"
+      
+    - name: "BFCL-Parallel"
+      description: "Multiple parallel function calls"
+      metric: "multi_call_accuracy"
+      
+    - name: "BFCL-Relevance"
+      description: "Detecting irrelevant functions"
+      metric: "relevance_detection"
+      
+    - name: "ToolBench-Lite"
+      description: "Real-world API calling (100 tasks)"
+      metric: "pass_rate"
+      categories: ["G1-instruction", "G2-category"]
+  
+  scoring:
+    exact_match: 0.40  # Function name + parameters
+    semantic_match: 0.30  # Correct intent, minor param errors
+    format_correctness: 0.30  # Valid JSON/format

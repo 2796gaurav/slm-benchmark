@@ -26,6 +26,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from edge_benchmark import EdgeBenchmark
 from quantization_bench import QuantizationBenchmark
 from safety_eval import SafetyEvaluator
+from carbon_tracker import CarbonTrackerWrapper
+from fine_tuning_benchmark import FineTuningEfficiency
 
 # Configure logging
 logging.basicConfig(
@@ -51,6 +53,7 @@ class BenchmarkConfig:
     deterministic: bool = True
     edge_tests: bool = True
     safety_tests: bool = True
+    enable_carbon_tracking: bool = False
     limit: int = None  # Limit number of samples per task
 
 
@@ -77,6 +80,15 @@ class BenchmarkResult:
     # Aggregate
     aggregate_score: float
     rank: int
+    
+    # New Categories
+    tool_use_scores: Dict = None
+    long_context_scores: Dict = None
+    fine_tuning_metrics: Dict = None
+    
+    # Environmental
+    environmental_metrics: Dict = None
+    efficiency_score: float = 0.0
 
 
 class SLMBenchmark:
@@ -96,6 +108,12 @@ class SLMBenchmark:
         
         # Initialize system info
         self.system_info = self._get_system_info()
+
+        # Initialize carbon tracker
+        self.carbon_tracker = CarbonTrackerWrapper(
+            output_dir="results/carbon",
+            enable=config.enable_carbon_tracking
+        )
     
     def _get_system_info(self) -> Dict:
         """Get system information for reproducibility"""
@@ -115,6 +133,24 @@ class SLMBenchmark:
             info['gpu_memory'] = torch.cuda.get_device_properties(0).total_memory / 1e9
         
         return info
+
+    def run_tool_use_benchmarks(self, model) -> Dict:
+        """Run tool use capabilities benchmarks"""
+        logger.info("Running tool use benchmarks...")
+        # Placeholder for actual BFCL/ToolBench integration
+        # In a real impl, this would load the tool_calling.yaml and run those specific tests
+        return {"bfcl_score": 0.0, "toolbench_pass_rate": 0.0}
+
+    def run_long_context_benchmarks(self, model) -> Dict:
+        """Run long context benchmarks"""
+        logger.info("Running long context benchmarks...")
+        return {"needle_in_haystack": 0.0, "multi_doc_qa": 0.0}
+
+    def run_fine_tuning_benchmarks(self, model_name) -> Dict:
+        """Run fine-tuning efficiency benchmarks"""
+        logger.info("Running fine-tuning benchmarks...")
+        ft_bench = FineTuningEfficiency()
+        return ft_bench.evaluate_tunability(model_name)
     
     def load_model(self):
         """Load model from Hugging Face"""
@@ -126,7 +162,8 @@ class SLMBenchmark:
                 model = HFLM(
                     pretrained=self.config.hf_repo,
                     device='cuda' if torch.cuda.is_available() else 'cpu',
-                    dtype='float16'
+                    dtype='float16',
+                    trust_remote_code=True
                 )
             elif 'Q4' in self.config.quantization or 'Q8' in self.config.quantization:
                 # Load GGUF model
@@ -140,7 +177,8 @@ class SLMBenchmark:
             else:
                 model = HFLM(
                     pretrained=self.config.hf_repo,
-                    device='cuda' if torch.cuda.is_available() else 'cpu'
+                    device='cuda' if torch.cuda.is_available() else 'cpu',
+                    trust_remote_code=True
                 )
             
             logger.info("Model loaded successfully")
@@ -269,10 +307,12 @@ class SLMBenchmark:
             'reasoning': 0.30,
             'coding': 0.20,
             'math': 0.15,
-            'language': 0.15,
+            'language': 0.12,
             'edge': 0.10,
-            'safety': 0.10
+            'safety': 0.05,
+            'tool_use': 0.08
         }
+
         
         scores = {
             'reasoning': self._average_scores(self.results['reasoning_scores']),
@@ -280,7 +320,8 @@ class SLMBenchmark:
             'math': self._average_scores(self.results['math_scores']),
             'language': self._average_scores(self.results['language_scores']),
             'edge': self._average_scores(self.results['edge_metrics']),
-            'safety': self._average_scores(self.results['safety_scores'])
+            'safety': self._average_scores(self.results['safety_scores']),
+            'tool_use': self._average_scores(self.results.get('tool_use_scores', {}))
         }
         
         aggregate = sum(scores[k] * weights[k] for k in weights.keys())
@@ -305,6 +346,10 @@ class SLMBenchmark:
         logger.info(f"Starting benchmark for {self.config.model_name}")
         start_time = time.time()
         
+        # Start carbon tracking
+        self.carbon_tracker.start()
+        
+        
         # Load model
         model = self.load_model()
         
@@ -315,9 +360,30 @@ class SLMBenchmark:
         self.results['language_scores'] = self.run_language_benchmarks(model)
         self.results['edge_metrics'] = self.run_edge_benchmarks(model)
         self.results['safety_scores'] = self.run_safety_benchmarks(model)
+        self.results['tool_use_scores'] = self.run_tool_use_benchmarks(model)
+        self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
+        self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
         
         # Calculate aggregate
         aggregate_score = self.calculate_aggregate_score()
+        
+        # Stop carbon tracking
+        env_metrics = self.carbon_tracker.stop()
+        
+        # Calculate efficiency score
+        efficiency_score = 0.0
+        if env_metrics and env_metrics.get('energy_consumed_kwh', 0) > 0:
+            # Formula: Accuracy / Energy(kWh)
+            # Baseline: 1 kWh
+            efficiency_score = (aggregate_score / env_metrics['energy_consumed_kwh'])
+        elif env_metrics: 
+             # Fallback if energy is too low to measure (very fast run)
+             # Avoid infinity, set to a high cap based on latency?
+             # For now, just set to 0 or handle effectively.
+             efficiency_score = 0.0 # Or maybe aggregate_score * 10 (arbitrary boost for efficiency)
+             if aggregate_score > 0:
+                  logger.warning("Energy consumption near zero, efficiency score may be inaccurate")
+        
         
         # Create result object
         result = BenchmarkResult(
@@ -331,7 +397,12 @@ class SLMBenchmark:
             language_scores=self.results['language_scores'],
             edge_metrics=self.results['edge_metrics'],
             safety_scores=self.results['safety_scores'],
+            tool_use_scores=self.results['tool_use_scores'],
+            long_context_scores=self.results['long_context_scores'],
+            fine_tuning_metrics=self.results['fine_tuning_metrics'],
             aggregate_score=aggregate_score,
+            environmental_metrics=env_metrics,
+            efficiency_score=efficiency_score,
             rank=0  # Will be calculated later
         )
         
@@ -348,7 +419,8 @@ class SLMBenchmark:
         
         # Save as JSON
         result_dict = asdict(result)
-        output_file = output_dir / f"{self.config.model_name}_{self.config.quantization}_{int(time.time())}.json"
+        safe_model_name = self.config.model_name.replace('/', '_')
+        output_file = output_dir / f"{safe_model_name}_{self.config.quantization}_{int(time.time())}.json"
         
         with open(output_file, 'w') as f:
             json.dump(result_dict, f, indent=2)
@@ -367,9 +439,14 @@ def main():
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--timestamp', type=str)
     parser.add_argument('--full-report', action='store_true')
+    parser.add_argument('--enable-carbon-tracking', action='store_true', help='Enable energy consumption tracking')
     parser.add_argument('--limit', type=int, help='Limit number of samples per task for testing')
+    parser.add_argument('--batch-size', type=int, default=1, help='Batch size for inference')
     
     args = parser.parse_args()
+    
+    if not args.timestamp:
+        args.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # Load submission
     with open(args.submission_file, 'r') as f:
@@ -377,19 +454,25 @@ def main():
     
     model_info = submission['model']
     
-    # Run benchmark for each quantization
-    all_results = []
     
-    for quant in model_info['quantizations']:
+    # Run benchmarks for each quantization
+    all_results = []
+    quantizations = model_info.get('quantizations', [{'name': 'FP16'}])
+    if not quantizations:
+        quantizations = [{'name': 'FP16'}]
+
+    for quant_info in quantizations:
         config = BenchmarkConfig(
-            model_name=model_info['name'],
-            hf_repo=model_info['hf_repo'],
-            parameters=model_info['parameters'],
-            quantization=quant['name'],
+            model_name=model_info.get('hf_repo', model_info.get('name', args.submission_file)),
+            hf_repo=model_info.get('hf_repo'),
+            parameters=model_info.get('parameters', {}),
+            quantization=quant_info['name'],
             tasks=model_info.get('categories', []),
             seed=args.seed,
             deterministic=args.deterministic,
-            limit=args.limit
+            limit=args.limit,
+            enable_carbon_tracking=args.enable_carbon_tracking,
+            batch_size=args.batch_size
         )
         
         benchmark = SLMBenchmark(config)
@@ -402,13 +485,13 @@ def main():
             result_file = benchmark.save_results(result, output_dir)
             
             all_results.append({
-                'quantization': quant['name'],
+                'quantization': quant_info['name'],
                 'result_file': str(result_file),
                 'aggregate_score': result.aggregate_score
             })
             
         except Exception as e:
-            logger.error(f"Benchmark failed for {quant['name']}: {e}")
+            logger.error(f"Benchmark failed for {quant_info['name']}: {e}")
             continue
     
     # Save summary

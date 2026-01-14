@@ -10,3 +10,4 @@ numpy
 pandas
 tqdm
 llama-cpp-python  # For GGUF support
+codecarbon==3.2.1

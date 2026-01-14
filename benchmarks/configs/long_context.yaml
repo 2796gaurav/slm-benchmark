@@ -1,0 +1,18 @@
+long_context_evaluation:
+  benchmarks:
+    - name: "Needle-in-Haystack"
+      context_lengths: [8k, 16k, 32k, 64k]
+      metric: "retrieval_accuracy"
+      
+    - name: "Multi-Document-QA"
+      num_documents: [5, 10, 20]
+      metric: "answer_accuracy"
+      
+    - name: "Long-Context-Reasoning"
+      task: "summarization"
+      context_length: "max_supported"
+      
+  scoring:
+    context_utilization: 0.40
+    accuracy_degradation: 0.30  # How much accuracy drops with length
+    latency_scaling: 0.30  # TTFT increase rate

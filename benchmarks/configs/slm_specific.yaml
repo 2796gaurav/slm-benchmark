@@ -1,0 +1,28 @@
+slm_specific_benchmarks:
+  - name: "Constrained-Generation"
+    description: "Generate under token/latency budgets"
+    tasks:
+      - "50-token summaries in <500ms"
+      - "JSON extraction with schema validation"
+      - "Structured output generation"
+    
+  - name: "Low-Resource-Robustness"
+    description: "Performance with limited context"
+    tasks:
+      - "QA with only 512 context tokens"
+      - "Few-shot learning (1-3 examples max)"
+      - "Single-turn instruction following"
+    
+  - name: "Streaming-Quality"
+    description: "Real-time generation quality"
+    metrics:
+      - "First token latency"
+      - "Token consistency (no hallucination mid-stream)"
+      - "Graceful degradation under load"
+    
+  - name: "Quantization-Robustness"
+    description: "Accuracy retention after quantization"
+    test_formats:
+      - "FP16 -> INT8 (accuracy delta)"
+      - "FP16 -> INT4 (accuracy delta)"
+      - "GGUF Q4_K_M performance"
