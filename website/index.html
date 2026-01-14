@@ -110,7 +110,6 @@
                                 <th class="sortable" data-sort="language">Language</th>
                                 <th class="sortable" data-sort="edge">Edge</th>
                                 <th>Quantization</th>
-                                <th>Links</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboard-body"></tbody>
@@ -265,7 +264,7 @@
             tbody.innerHTML = '';
 
             if (filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">No models found matching your criteria.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">No models found matching your criteria.</td></tr>';
                 return;
             }
 
@@ -274,8 +273,14 @@
                 row.innerHTML = `
                     <td><span class="rank rank-${item.rank}">#${item.rank}</span></td>
                     <td>
-                        <div class="model-name">${item.model}</div>
+                        <a href="model.html?id=${item.id}" class="model-name-link" style="text-decoration: none;">
+                            <div class="model-name">${item.model}</div>
+                        </a>
                         <div style="font-size: 0.75rem; color: var(--text-tertiary);">${item.family}</div>
+                        <div style="font-size: 0.75rem; margin-top: 0.25rem;">
+                            <span style="color: var(--text-tertiary);">Source: </span>
+                            <a href="https://huggingface.co/${item.hf_repo}" target="_blank" class="model-link" style="font-size: 0.75rem;">${item.hf_repo}</a>
+                        </div>
                     </td>
                     <td><span class="badge badge-size">${item.parameters}</span></td>
                     <td><span class="score">${item.aggregate.toFixed(2)}</span></td>
@@ -286,11 +291,6 @@
                     ${renderScoreCell(item.edge)}
                     <td>
                         ${item.quantizations.map(q => `<span class="badge badge-quant" title="${q.format}">${q.name}</span>`).join(' ')}
-                    </td>
-                    <td>
-                        <a href="https://huggingface.co/${item.hf_repo}" target="_blank" class="model-link">🤗 HF</a>
-                        <br>
-                        <a href="model.html?id=${item.id}" class="model-link">📊 Details</a>
                     </td>
                 `;
                 tbody.appendChild(row);
