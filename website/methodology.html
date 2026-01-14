@@ -5,46 +5,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Methodology - SLM Benchmark</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        body {
-            font-family: sans-serif;
-            background: #0f172a;
-            color: #f1f5f9;
-            padding: 2rem;
-            line-height: 1.6;
+        .method-section {
+            margin-bottom: 3rem;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .method-section h2 {
+            border-left: 4px solid var(--speed-cyan);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        a {
-            color: #2563eb;
+        .method-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
         }
 
-        h1 {
-            color: #60a5fa;
+        .task-card {
+            background: var(--bg-elevated);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-medium);
+        }
+
+        .task-card h3 {
+            color: var(--speed-cyan);
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Methodology</h1>
-        <p>Our benchmarking process is designed to be transparent, reproducible, and unbiased.</p>
-        <h2>Benchmark Tasks</h2>
-        <ul>
-            <li><strong>Reasoning:</strong> MMLU, ARC Challenge, HellaSwag</li>
-            <li><strong>Coding:</strong> HumanEval, MBPP</li>
-            <li><strong>Math:</strong> GSM8K, MATH</li>
-            <li><strong>Language:</strong> BoolQ, PIQA, Winogrande</li>
-        </ul>
-        <h2>Edge Metrics</h2>
-        <p>We measure latency, throughput, and memory usage on standard edge hardware (Raspberry Pi 5, Jetson Orin,
-            Mobile CPUs).</p>
-        <p><a href="index.html">Back to Leaderboard</a></p>
-    </div>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>SLM Benchmark</span>
+                </a>
+                <div class="nav-controls">
+                    <ul class="nav-links">
+                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
+                        <li><a href="methodology.html">Methodology</a></li>
+                        <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                    </ul>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card" style="margin-top: 3rem;">
+                <h1 style="color: var(--speed-cyan); margin-bottom: 1rem;">Benchmarking Methodology</h1>
+                <p style="font-size: 1.1rem; color: var(--text-secondary);">We use a standardized, multi-dimensional
+                    evaluation pipeline specifically optimized for Small Language Models (1M - 3B parameters).</p>
+            </div>
+
+            <div class="method-section">
+                <h2>Evaluation Pillars</h2>
+                <div class="method-grid">
+                    <div class="task-card">
+                        <h3>🧠 Reasoning</h3>
+                        <p>Evaluated using ARC-Challenge, HellaSwag, and TruthfulQA. Focuses on logical deduction and
+                            common sense.</p>
+                    </div>
+                    <div class="task-card">
+                        <h3>💻 Coding</h3>
+                        <p>Tested via HumanEval and MBPP. Assesses Python generation and algorithmic problem solving.
+                        </p>
+                    </div>
+                    <div class="task-card">
+                        <h3>🔢 Math</h3>
+                        <p>GSM8K and MATH benchmarks. Measures multi-step quantitative reasoning capabilities.</p>
+                    </div>
+                    <div class="task-card">
+                        <h3>📱 Edge Performance</h3>
+                        <p>Specialized metrics for CPU latency, memory footprint, and energy efficiency via CodeCarbon.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Aggregate Score Calculation</h2>
+                <p>The aggregate score is a weighted average of all pillars, normalized to a 0-100 scale. We apply a
+                    penalty for models with high memory usage relative to their parameter count.</p>
+                <code
+                    style="display: block; background: var(--bg-dark); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: 'JetBrains Mono', monospace;">
+                    Score = (Reasoning*0.3 + Coding*0.2 + Math*0.2 + Lang*0.2 + Edge*0.1)
+                </code>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
+                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
+                <a href="methodology.html">Methodology</a>
+                <a href="submit.html">Submit Model</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
 </body>
 
 </html>

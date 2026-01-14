@@ -5,128 +5,232 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Model Details - SLM Benchmark</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        body {
-            font-family: sans-serif;
-            background: #0f172a;
-            color: #f1f5f9;
-            padding: 2rem;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1000px;
+        .radar-chart {
+            width: 300px;
+            height: 300px;
             margin: 0 auto;
+            position: relative;
         }
 
-        a {
-            color: #2563eb;
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        h1 {
-            color: #60a5fa;
+        .score-item:last-child {
+            border-bottom: none;
         }
 
-        .card {
-            background: #1e293b;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
+        .score-bar-container {
+            flex: 1;
+            margin: 0 1rem;
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .stat {
-            background: #0f172a;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2563eb;
+        .score-bar {
+            height: 100%;
+            background: var(--speed-cyan);
+            transition: width 1s ease;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1 id="model-name">Loading Model Details...</h1>
-        <div class="card">
-            <div class="grid">
-                <div class="stat">
-                    <div class="stat-label">Parameters</div>
-                    <div id="model-params" class="stat-value">-</div>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>SLM Benchmark</span>
+                </a>
+                <div class="nav-controls">
+                    <ul class="nav-links">
+                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
+                        <li><a href="methodology.html">Methodology</a></li>
+                        <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                    </ul>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
                 </div>
-                <div class="stat">
-                    <div class="stat-label">Aggregate Score</div>
-                    <div id="model-aggregate" class="stat-value">-</div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div id="loading-state" class="loading">
+                <div class="spinner"></div>
+                <p>Loading model details...</p>
+            </div>
+
+            <div id="content-state" style="display: none;">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h1 id="model-name-title" style="color: var(--speed-cyan); margin-bottom: 0.5rem;">Model
+                                Name</h1>
+                            <p id="model-family"
+                                style="color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace;">Family
+                                Name</p>
+                        </div>
+                        <div id="model-links">
+                            <!-- Links populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Parameters</div>
+                            <div id="stat-params" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Aggregate Score</div>
+                            <div id="stat-aggregate" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">License</div>
+                            <div id="stat-license" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Rank</div>
+                            <div id="stat-rank" class="stat-value">-</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat">
-                    <div class="stat-label">License</div>
-                    <div id="model-license" class="stat-value">-</div>
+
+                <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+                    <div class="card">
+                        <h2>Detailed Performance</h2>
+                        <div id="scores-list">
+                            <!-- Scores populated by JS -->
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>Model Metadata</h2>
+                        <div id="metadata-list">
+                            <!-- Metadata populated by JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </main>
 
-        <h2>Detailed Scores</h2>
-        <div class="card">
-            <div id="scores-container" class="grid">
-                <!-- Scores will be loaded here -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
+                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
+                <a href="methodology.html">Methodology</a>
+                <a href="submit.html">Submit Model</a>
             </div>
         </div>
+    </footer>
 
-        <p><a href="index.html">Back to Leaderboard</a></p>
-    </div>
-
+    <script src="assets/js/main.js"></script>
     <script>
-        async function loadModelDetails() {
+        async function loadModel() {
             const params = new URLSearchParams(window.location.search);
             const modelId = params.get('id');
-            if (!modelId) return;
+            if (!modelId) {
+                window.location.href = 'index.html';
+                return;
+            }
 
             try {
                 const response = await fetch('./assets/data/leaderboard.json');
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                const data = await response.json();
-                const models = Array.isArray(data) ? data : (data.models || []);
+                const result = await response.json();
+                const models = Array.isArray(result) ? result : (result.models || []);
                 const model = models.find(m => m.id === modelId);
 
-                if (model) {
-                    document.getElementById('model-name').textContent = model.name;
-                    document.getElementById('model-params').textContent = model.parameters || 'N/A';
-                    document.getElementById('model-aggregate').textContent = (model.aggregate_score || 0).toFixed(2);
-                    document.getElementById('model-license').textContent = model.license || 'N/A';
-
-                    const scoresContainer = document.getElementById('scores-container');
-                    scoresContainer.innerHTML = '';
-                    if (model.scores) {
-                        Object.entries(model.scores).forEach(([name, score]) => {
-                            const stat = document.createElement('div');
-                            stat.className = 'stat';
-                            stat.innerHTML = `
-                                <div class="stat-label">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
-                                <div class="stat-value">${(score || 0).toFixed(2)}</div>
-                            `;
-                            scoresContainer.appendChild(stat);
-                        });
-                    }
-                } else {
-                    document.getElementById('model-name').textContent = 'Model not found';
+                if (!model) {
+                    document.getElementById('loading-state').innerHTML = '<h2>Model not found</h2><p><a href="index.html">Back to Leaderboard</a></p>';
+                    return;
                 }
+
+                // Populate basic info
+                document.getElementById('model-name-title').textContent = model.name;
+                document.getElementById('model-family').textContent = model.family;
+                document.getElementById('stat-params').textContent = model.parameters;
+                document.getElementById('stat-aggregate').textContent = (model.aggregate_score || 0).toFixed(2);
+                document.getElementById('stat-license').textContent = model.license || 'N/A';
+                document.getElementById('stat-rank').textContent = `#${model.rank || '-'}`;
+
+                // Links
+                const linksContainer = document.getElementById('model-links');
+                if (model.hf_repo) {
+                    linksContainer.innerHTML = `<a href="https://huggingface.co/${model.hf_repo}" target="_blank" class="model-link" style="font-size: 1.1rem;">🤗 View on Hugging Face</a>`;
+                }
+
+                // Detailed Scores
+                const scoresList = document.getElementById('scores-list');
+                const scoreNames = ['reasoning', 'coding', 'math', 'language', 'edge'];
+                scoreNames.forEach(name => {
+                    const score = (model.scores && model.scores[name]) || 0;
+                    const item = document.createElement('div');
+                    item.className = 'score-item';
+                    item.innerHTML = `
+                        <div style="width: 100px; text-transform: capitalize; font-weight: 500;">${name}</div>
+                        <div class="score-bar-container">
+                            <div class="score-bar" style="width: 0%"></div>
+                        </div>
+                        <div style="font-family: 'JetBrains Mono', monospace; min-width: 50px; text-align: right;">${score.toFixed(2)}</div>
+                    `;
+                    scoresList.appendChild(item);
+                    setTimeout(() => {
+                        item.querySelector('.score-bar').style.width = `${score}%`;
+                    }, 100);
+                });
+
+                // Metadata
+                const metaList = document.getElementById('metadata-list');
+                const metadata = {
+                    'Architecture': model.architecture || 'N/A',
+                    'Context Length': model.context_length ? `${model.context_length} tokens` : 'N/A',
+                    'Submitted By': model.submitted_by || 'Anonymous',
+                    'Date Added': model.date_added || 'N/A',
+                    'Quantizations Available': model.quantizations ? model.quantizations.map(q => q.name).join(', ') : 'None'
+                };
+
+                Object.entries(metadata).forEach(([key, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'score-item';
+                    item.innerHTML = `
+                        <div style="color: var(--text-tertiary); font-size: 0.9rem;">${key}</div>
+                        <div style="font-weight: 500;">${value}</div>
+                    `;
+                    metaList.appendChild(item);
+                });
+
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('content-state').style.display = 'block';
+
             } catch (error) {
-                console.error('Failed to load model details:', error);
-                document.getElementById('model-name').textContent = 'Error loading details';
+                console.error('Error:', error);
+                document.getElementById('loading-state').innerHTML = '<h2>Error loading model</h2>';
             }
         }
-        loadModelDetails();
+
+        loadModel();
     </script>
 </body>
 

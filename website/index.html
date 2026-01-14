@@ -16,530 +16,20 @@
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --speed-cyan: #00ffff;
-            --speed-electric: #00e5ff;
-            --speed-blue: #0099ff;
-            --accent-amber: #ffb627;
-            --accent-green: #00ff88;
-            --bg-dark: #0a0e1a;
-            --bg-surface: #141824;
-            --bg-elevated: #1a1f2e;
-            --text-primary: #e8edf4;
-            --text-secondary: #9ca8ba;
-            --text-tertiary: #6b7688;
-            --border-subtle: #232936;
-            --border-medium: #2d3545;
-            --success: #00ff88;
-            --warning: #ffb627;
-            --danger: #ff4757;
-        }
-
-        [data-theme="light"] {
-            --bg-dark: #f8f9fb;
-            --bg-surface: #ffffff;
-            --bg-elevated: #f1f3f5;
-            --text-primary: #1a1f2e;
-            --text-secondary: #4a5568;
-            --text-tertiary: #718096;
-            --border-subtle: #e2e8f0;
-            --border-medium: #cbd5e0;
-            --speed-cyan: #0099ff;
-            --speed-electric: #0088dd;
-            --speed-blue: #0066cc;
-        }
-
-        body {
-            font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            line-height: 1.6;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
-
-        /* Header */
-        header {
-            background: var(--bg-surface);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-subtle);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: all 0.3s ease;
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            gap: 2rem;
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--speed-cyan);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .logo-icon {
-            font-size: 1.5rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.6;
-            }
-        }
-
-        .nav-controls {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-            position: relative;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--speed-cyan);
-            transition: width 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-primary);
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        .theme-toggle {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            border-radius: 8px;
-            padding: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            width: 40px;
-            height: 40px;
-        }
-
-        .theme-toggle:hover {
-            border-color: var(--speed-cyan);
-            transform: translateY(-1px);
-        }
-
-        .theme-icon {
-            font-size: 1.2rem;
-        }
-
-        /* Filters */
-        .filters {
-            background: var(--bg-surface);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            border: 1px solid var(--border-subtle);
-            transition: all 0.3s ease;
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-group label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        select,
-        input[type="search"] {
-            background: var(--bg-elevated);
-            color: var(--text-primary);
-            border: 1px solid var(--border-medium);
-            padding: 0.65rem 0.9rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-family: 'Work Sans', sans-serif;
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        select:focus,
-        input[type="search"]:focus {
-            border-color: var(--speed-cyan);
-            box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1);
-        }
-
-        input[type="search"] {
-            grid-column: span 2;
-        }
-
-        .tags {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .tag {
-            padding: 0.4rem 0.9rem;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .tag:hover {
-            background: var(--bg-dark);
-            border-color: var(--speed-cyan);
-            transform: translateY(-1px);
-        }
-
-        .tag.active {
-            background: var(--speed-cyan);
-            border-color: var(--speed-cyan);
-            color: var(--bg-dark);
-        }
-
-        /* Leaderboard */
-        .leaderboard {
-            background: var(--bg-surface);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border-subtle);
-            transition: all 0.3s ease;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            max-height: calc(100vh - 300px);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: var(--bg-elevated);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 2px solid var(--border-medium);
-            transition: background 0.2s;
-        }
-
-        th:hover {
-            background: var(--bg-dark);
-        }
-
-        th.sortable::after {
-            content: ' ↕';
-            opacity: 0.3;
-            margin-left: 0.3rem;
-        }
-
-        th.sorted-asc::after {
-            content: ' ↑';
-            opacity: 1;
-            color: var(--speed-cyan);
-        }
-
-        th.sorted-desc::after {
-            content: ' ↓';
-            opacity: 1;
-            color: var(--speed-cyan);
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-subtle);
-            font-size: 0.9rem;
-        }
-
-        tr {
-            transition: background 0.15s;
-        }
-
-        tbody tr:hover {
-            background: var(--bg-elevated);
-        }
-
-        .rank {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        .rank-1 {
-            color: var(--accent-amber);
-        }
-
-        .rank-2 {
-            color: #c0c0c0;
-        }
-
-        .rank-3 {
-            color: #cd7f32;
-        }
-
-        .model-name {
-            font-weight: 600;
-            color: var(--speed-cyan);
-        }
-
-        .model-link {
-            color: var(--speed-cyan);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .model-link:hover {
-            color: var(--speed-electric);
-            text-decoration: underline;
-        }
-
-        .score {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        .badge-quant {
-            background: rgba(0, 229, 255, 0.15);
-            color: var(--speed-electric);
-            border: 1px solid rgba(0, 229, 255, 0.3);
-        }
-
-        .badge-size {
-            background: rgba(255, 182, 39, 0.15);
-            color: var(--accent-amber);
-            border: 1px solid rgba(255, 182, 39, 0.3);
-        }
-
-        .progress-bar {
-            width: 80px;
-            height: 6px;
-            background: var(--bg-dark);
-            border-radius: 3px;
-            overflow: hidden;
-            border: 1px solid var(--border-subtle);
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--speed-cyan), var(--speed-blue));
-            transition: width 0.5s ease;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 4rem 0;
-        }
-
-        .spinner {
-            border: 3px solid var(--border-subtle);
-            border-top: 3px solid var(--speed-cyan);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Footer */
-        footer {
-            margin-top: 4rem;
-            padding: 2rem 0;
-            border-top: 1px solid var(--border-subtle);
-            text-align: center;
-            color: var(--text-tertiary);
-            font-size: 0.85rem;
-        }
-
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer-links a:hover {
-            color: var(--speed-cyan);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .filter-grid {
-                grid-template-columns: 1fr;
-            }
-
-            input[type="search"] {
-                grid-column: span 1;
-            }
-
-            .table-container {
-                max-height: calc(100vh - 250px);
-            }
-
-            th,
-            td {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.8rem;
-            }
-        }
-
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Scrollbar */
-        .table-container::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--border-medium);
-            border-radius: 4px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: var(--speed-cyan);
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
     <header>
         <div class="container">
             <nav>
-                <div class="logo">
+                <a href="index.html" class="logo">
                     <span class="logo-icon">⚡</span>
                     <span>SLM Benchmark</span>
-                </div>
+                </a>
                 <div class="nav-controls">
                     <ul class="nav-links">
-                        <li><a href="#leaderboard">Leaderboard</a></li>
+                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
                         <li><a href="methodology.html">Methodology</a></li>
                         <li><a href="submit.html">Submit Model</a></li>
                         <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
@@ -567,7 +57,6 @@
                             <option value="coding">Coding</option>
                             <option value="math">Math</option>
                             <option value="parameters">Parameters</option>
-                            <option value="date">Date Added</option>
                         </select>
                     </div>
 
@@ -575,7 +64,7 @@
                         <label for="size-filter">Size</label>
                         <select id="size-filter" aria-label="Filter by size">
                             <option value="all">All Sizes</option>
-                            <option value="tiny">Tiny (&lt; 100M)</option>
+                            <option value="tiny">Tiny (< 100M)</option>
                             <option value="small">Small (100M-500M)</option>
                             <option value="medium">Medium (500M-1B)</option>
                             <option value="large">Large (1B-3B)</option>
@@ -586,9 +75,10 @@
                         <label for="quant-filter">Quantization</label>
                         <select id="quant-filter" aria-label="Filter by quantization">
                             <option value="all">All</option>
-                            <option value="fp16">FP16</option>
-                            <option value="q8">Q8_0</option>
-                            <option value="q4">Q4_K_M</option>
+                            <option value="FP32">FP32</option>
+                            <option value="FP16">FP16</option>
+                            <option value="Q8">Q8_0</option>
+                            <option value="Q4">Q4_K_M</option>
                         </select>
                     </div>
                 </div>
@@ -642,188 +132,217 @@
         </div>
     </footer>
 
+    <script src="assets/js/main.js"></script>
     <script>
-        // Theme Toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.querySelector('.theme-icon');
-        const html = document.documentElement;
+        let allData = [];
+        let filteredData = [];
+        let currentSort = { column: 'rank', direction: 'asc' };
+        let activeCategory = 'All';
 
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        html.setAttribute('data-theme', savedTheme);
-        themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
-        });
-
-        // Data will be loaded from external source
-        let mockData = [];
-
-        // Categories
         const categories = ['All', 'Reasoning', 'Coding', 'Math', 'Language', 'Edge'];
-        const categoryTags = document.getElementById('category-tags');
 
-        categories.forEach((cat, idx) => {
-            const tag = document.createElement('div');
-            tag.className = 'tag' + (idx === 0 ? ' active' : '');
-            tag.textContent = cat;
-            tag.addEventListener('click', () => {
-                document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-                tag.classList.add('active');
+        async function init() {
+            renderCategoryTags();
+            await loadData();
+            setupEventListeners();
+        }
+
+        function renderCategoryTags() {
+            const container = document.getElementById('category-tags');
+            container.innerHTML = '';
+            categories.forEach(cat => {
+                const tag = document.createElement('div');
+                tag.className = `tag ${cat === activeCategory ? 'active' : ''}`;
+                tag.textContent = cat;
+                tag.addEventListener('click', () => {
+                    activeCategory = cat;
+                    renderCategoryTags();
+                    applyFilters();
+                });
+                container.appendChild(tag);
             });
-            categoryTags.appendChild(tag);
-        });
+        }
 
-        // Populate table
-        function populateTable(data) {
+        async function loadData() {
+            try {
+                const response = await fetch('./assets/data/leaderboard.json');
+                const result = await response.json();
+                allData = Array.isArray(result) ? result : (result.models || []);
+
+                // Map internal structure to easy-to-use structure
+                allData = allData.map(m => ({
+                    id: m.id,
+                    rank: m.rank,
+                    model: m.name,
+                    family: m.family,
+                    parameters: m.parameters,
+                    paramValue: parseParameters(m.parameters),
+                    aggregate: m.aggregate_score || 0,
+                    reasoning: m.scores?.reasoning || 0,
+                    coding: m.scores?.coding || 0,
+                    math: m.scores?.math || 0,
+                    language: m.scores?.language || 0,
+                    edge: m.scores?.edge || 0,
+                    quantizations: m.quantizations || [],
+                    hf_repo: m.hf_repo,
+                    categories: m.categories || []
+                }));
+
+                applyFilters();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('leaderboard-table').style.display = 'table';
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                document.getElementById('loading').innerHTML = `<p style="color: var(--danger);">Error loading data: ${error.message}</p>`;
+            }
+        }
+
+        function parseParameters(paramStr) {
+            if (!paramStr) return 0;
+            const match = paramStr.toString().match(/([\d.]+)([KMB])/i);
+            if (!match) return parseFloat(paramStr) || 0;
+            const num = parseFloat(match[1]);
+            const unit = match[2].toUpperCase();
+            const multipliers = { K: 1e3, M: 1e6, B: 1e9 };
+            return num * multipliers[unit];
+        }
+
+        function applyFilters() {
+            const searchQuery = document.getElementById('search').value.toLowerCase();
+            const sizeFilter = document.getElementById('size-filter').value;
+            const quantFilter = document.getElementById('quant-filter').value;
+
+            filteredData = allData.filter(m => {
+                const matchesSearch = m.model.toLowerCase().includes(searchQuery) ||
+                    m.family.toLowerCase().includes(searchQuery);
+
+                let matchesSize = true;
+                if (sizeFilter !== 'all') {
+                    const params = m.paramValue;
+                    if (sizeFilter === 'tiny') matchesSize = params < 100e6;
+                    if (sizeFilter === 'small') matchesSize = params >= 100e6 && params < 500e6;
+                    if (sizeFilter === 'medium') matchesSize = params >= 500e6 && params < 1e9;
+                    if (sizeFilter === 'large') matchesSize = params >= 1e9;
+                }
+
+                let matchesQuant = true;
+                if (quantFilter !== 'all') {
+                    matchesQuant = m.quantizations.some(q => q.name.includes(quantFilter));
+                }
+
+                let matchesCategory = true;
+                if (activeCategory !== 'All') {
+                    matchesCategory = m.categories.includes(activeCategory.toLowerCase());
+                }
+
+                return matchesSearch && matchesSize && matchesQuant && matchesCategory;
+            });
+
+            sortData();
+            renderTable();
+        }
+
+        function sortData() {
+            filteredData.sort((a, b) => {
+                let aVal = a[currentSort.column];
+                let bVal = b[currentSort.column];
+
+                if (currentSort.column === 'parameters') {
+                    aVal = a.paramValue;
+                    bVal = b.paramValue;
+                }
+
+                if (currentSort.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        function renderTable() {
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
 
-            data.forEach(item => {
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 3rem; color: var(--text-tertiary);">No models found matching your criteria.</td></tr>';
+                return;
+            }
+
+            filteredData.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><span class="rank rank-${item.rank}">#${item.rank}</span></td>
-                    <td><span class="model-name">${item.model}</span></td>
+                    <td>
+                        <div class="model-name">${item.model}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-tertiary);">${item.family}</div>
+                    </td>
                     <td><span class="badge badge-size">${item.parameters}</span></td>
-                    <td><span class="score">${item.aggregate.toFixed(1)}</span></td>
+                    <td><span class="score">${item.aggregate.toFixed(2)}</span></td>
+                    ${renderScoreCell(item.reasoning)}
+                    ${renderScoreCell(item.coding)}
+                    ${renderScoreCell(item.math)}
+                    ${renderScoreCell(item.language)}
+                    ${renderScoreCell(item.edge)}
                     <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${item.reasoning}%"></div>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.reasoning.toFixed(1)}</span>
+                        ${item.quantizations.map(q => `<span class="badge badge-quant" title="${q.format}">${q.name}</span>`).join(' ')}
                     </td>
                     <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${item.coding}%"></div>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.coding.toFixed(1)}</span>
-                    </td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${item.math}%"></div>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.math.toFixed(1)}</span>
-                    </td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${item.language}%"></div>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.language.toFixed(1)}</span>
-                    </td>
-                    <td>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${item.edge}%"></div>
-                        </div>
-                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.edge.toFixed(1)}</span>
-                    </td>
-                    <td><span class="badge badge-quant">${item.quantization}</span></td>
-                    <td>
-                        ${item.huggingface ? `<a href="${item.huggingface}" class="model-link" target="_blank" rel="noopener">HF</a>` : ''}
-                        ${item.github ? `<a href="${item.github}" class="model-link" target="_blank" rel="noopener" style="margin-left: 0.5rem;">GH</a>` : ''}
+                        <a href="https://huggingface.co/${item.hf_repo}" target="_blank" class="model-link">🤗 HF</a>
+                        <br>
+                        <a href="model.html?id=${item.id}" class="model-link">📊 Details</a>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // Sort functionality
-        let currentSort = { column: 'rank', direction: 'asc' };
-
-        document.querySelectorAll('th.sortable').forEach(th => {
-            th.addEventListener('click', () => {
-                const column = th.dataset.sort;
-
-                if (currentSort.column === column) {
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = column;
-                    currentSort.direction = 'asc';
-                }
-
-                document.querySelectorAll('th').forEach(header => {
-                    header.classList.remove('sorted-asc', 'sorted-desc');
-                });
-
-                th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
-
-                const sortedData = [...mockData].sort((a, b) => {
-                    let aVal = a[column];
-                    let bVal = b[column];
-
-                    if (column === 'parameters') {
-                        aVal = parseFloat(aVal);
-                        bVal = parseFloat(bVal);
-                    }
-
-                    if (currentSort.direction === 'asc') {
-                        return aVal > bVal ? 1 : -1;
-                    } else {
-                        return aVal < bVal ? 1 : -1;
-                    }
-                });
-
-                populateTable(sortedData);
-            });
-        });
-
-        // Search functionality
-        const searchInput = document.getElementById('search');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filtered = mockData.filter(item =>
-                item.model.toLowerCase().includes(query)
-            );
-            populateTable(filtered);
-        });
-
-        // Filter functionality
-        const sizeFilter = document.getElementById('size-filter');
-        const quantFilter = document.getElementById('quant-filter');
-
-        function applyFilters() {
-            let filtered = [...mockData];
-
-            const size = sizeFilter.value;
-            const quant = quantFilter.value;
-
-            if (size !== 'all') {
-                filtered = filtered.filter(item => {
-                    const params = parseFloat(item.parameters);
-                    if (size === 'tiny') return params < 0.1;
-                    if (size === 'small') return params >= 0.1 && params < 0.5;
-                    if (size === 'medium') return params >= 0.5 && params < 1;
-                    if (size === 'large') return params >= 1 && params <= 3;
-                    return true;
-                });
-            }
-
-            if (quant !== 'all') {
-                filtered = filtered.filter(item => item.quantization.toLowerCase().includes(quant.toLowerCase()));
-            }
-
-            populateTable(filtered);
+        function renderScoreCell(score) {
+            return `
+                <td>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${score}%"></div>
+                        </div>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; min-width: 35px;">${score.toFixed(1)}</span>
+                    </div>
+                </td>
+            `;
         }
 
-        sizeFilter.addEventListener('change', applyFilters);
-        quantFilter.addEventListener('change', applyFilters);
+        function setupEventListeners() {
+            document.getElementById('search').addEventListener('input', applyFilters);
+            document.getElementById('sort').addEventListener('change', (e) => {
+                currentSort.column = e.target.value;
+                currentSort.direction = (e.target.value === 'rank' || e.target.value === 'parameters') ? 'asc' : 'desc';
+                applyFilters();
+            });
+            document.getElementById('size-filter').addEventListener('change', applyFilters);
+            document.getElementById('quant-filter').addEventListener('change', applyFilters);
 
-        // Initialize - Load data from your data source
-        // Replace this with your actual data loading logic
-        // Example: fetch('data/leaderboard.json').then(res => res.json()).then(data => { mockData = data; ... })
-        setTimeout(() => {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('leaderboard-table').style.display = 'table';
-            if (mockData.length > 0) {
-                populateTable(mockData);
-            } else {
-                document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 3rem; color: var(--text-secondary);">No benchmark data available. Please load your data source.</td></tr>';
-            }
-        }, 800);
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.dataset.sort;
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'desc';
+                    }
+
+                    document.querySelectorAll('th').forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+                    th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+                    applyFilters();
+                });
+            });
+        }
+
+        init();
     </script>
+</body>
+
+</html>
 </body>
 
 </html>

@@ -5,64 +5,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submit Model - SLM Benchmark</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
-        body {
-            font-family: sans-serif;
-            background: #0f172a;
-            color: #f1f5f9;
-            padding: 2rem;
-            line-height: 1.6;
+        .step {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .step-num {
+            background: var(--speed-cyan);
+            color: var(--bg-dark);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
         }
 
-        a {
-            color: #2563eb;
-        }
-
-        h1 {
-            color: #60a5fa;
+        .step-content {
+            flex: 1;
         }
 
         pre {
-            background: #1e293b;
+            background: var(--bg-dark);
             padding: 1rem;
             border-radius: 8px;
+            border: 1px solid var(--border-medium);
             overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-top: 1rem;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Submit Your Model</h1>
-        <p>To submit a Small Language Model (SLM) for evaluation, follow these steps:</p>
-        <ol>
-            <li>Fork our <a href="https://github.com/2796gaurav/slm-benchmark">GitHub repository</a>.</li>
-            <li>Create a new YAML file in <code>models/submissions/</code> with your model details.</li>
-            <li>Open a Pull Request.</li>
-            <li>Our automated benchmark runner will test your model and post results in the PR.</li>
-        </ol>
-        <h3>Example Submission YAML</h3>
-        <pre>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>SLM Benchmark</span>
+                </a>
+                <div class="nav-controls">
+                    <ul class="nav-links">
+                        <li><a href="index.html#leaderboard">Leaderboard</a></li>
+                        <li><a href="methodology.html">Methodology</a></li>
+                        <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                    </ul>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card" style="margin-top: 3rem;">
+                <h1 style="color: var(--speed-cyan); margin-bottom: 1rem;">Submit Your Model</h1>
+                <p style="color: var(--text-secondary);">Contributions are welcome! Follow these steps to submit your
+                    Small Language Model for evaluation.</p>
+            </div>
+
+            <div class="card">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h3>Prepare your YAML</h3>
+                        <p>Create a submission file containing your model metadata. Ensure the model is publicly
+                            accessible on Hugging Face.</p>
+                        <pre>
 model:
-  name: "MySLM-1B"
+  name: "YourModelName-1.1B"
   family: "Llama"
-  hf_repo: "username/myslm-1b"
+  hf_repo: "username/repo"
   parameters: "1.1B"
+  architecture: "LlamaForCausalLM"
   license: "Apache-2.0"
-  quantizations:
-    - name: "FP16"
-    - name: "Q4_K_M"
-  categories:
-    - "reasoning"
-    - "language"
-        </pre>
-        <p><a href="index.html">Back to Leaderboard</a></p>
-    </div>
+  categories: ["reasoning", "language"]
+                        </pre>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h3>Open an Issue</h3>
+                        <p>Go to our GitHub repository and open a new issue using the "Model Submission" template. Paste
+                            your YAML in the description.</p>
+                        <a href="https://github.com/2796gaurav/slm-benchmark/issues/new" target="_blank"
+                            class="model-link" style="display: inline-block; margin-top: 0.5rem; font-weight: 600;">Open
+                            GitHub Issues →</a>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h3>Automated Evaluation</h3>
+                        <p>Our Community Runners will automatically pick up your submission, run the benchmarks on CPU,
+                            and update the leaderboard within 24 hours.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
+            <div class="footer-links">
+                <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
+                <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
+                <a href="methodology.html">Methodology</a>
+                <a href="submit.html">Submit Model</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
 </body>
 
 </html>
