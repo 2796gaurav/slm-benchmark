@@ -145,3 +145,5 @@ class ModelComparisonTool {
         return value === best;
     }
 }
+
+window.ModelComparisonTool = ModelComparisonTool;

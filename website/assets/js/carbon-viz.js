@@ -109,3 +109,5 @@ class CarbonVisualization {
         return num * multipliers[unit];
     }
 }
+
+window.CarbonVisualization = CarbonVisualization;
