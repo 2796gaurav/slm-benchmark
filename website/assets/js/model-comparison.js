@@ -32,18 +32,16 @@ class ModelComparisonTool {
 
         const categories = [
             'Reasoning', 'Coding', 'Math',
-            'Language', 'Edge', 'Safety', 'Efficiency'
+            'Language', 'Tool Use', 'Safety', 'Edge'
         ];
 
         // Ensure scores exist
         const datasets = this.selectedModels.map((model, idx) => ({
             label: model.name,
-            data: categories.map(cat =>
-                // Handle different casing or missing structure
-                (model.scores && model.scores[cat.toLowerCase()])
-                    ? model.scores[cat.toLowerCase()]
-                    : (cat === 'Efficiency' ? (model.efficiency_score || 0) / 2 : 0) // scale efficiency roughly
-            ),
+            data: categories.map(cat => {
+                const key = cat.toLowerCase().replace(' ', '_');
+                return (model.scores && model.scores[key]) || 0;
+            }),
             borderColor: this.COLORS[idx],
             backgroundColor: this.COLORS[idx] + '33', // 20% opacity
             pointRadius: 4,

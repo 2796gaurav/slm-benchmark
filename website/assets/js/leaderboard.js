@@ -345,7 +345,12 @@ class LeaderboardManager {
     }
 }
 
-// Initialize on page load
+// Ensure these are globally available even for strict CSP or module-like behavior
+// Assuming CarbonVisualization and ModelComparisonTool are defined elsewhere or imported
+window.CarbonVisualization = typeof CarbonVisualization !== 'undefined' ? CarbonVisualization : undefined;
+window.ModelComparisonTool = typeof ModelComparisonTool !== 'undefined' ? ModelComparisonTool : undefined;
+
+// Initialize on page load - v1.0.1 (forcing cache refresh)
 document.addEventListener('DOMContentLoaded', () => {
     new LeaderboardManager();
 });

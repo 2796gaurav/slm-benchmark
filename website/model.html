@@ -246,16 +246,15 @@
                 document.getElementById('content-state').style.display = 'block';
 
                 // Initialize Radar Chart
-                if (window.ModelComparisonTool) {
+                if (typeof ModelComparisonTool !== 'undefined') {
                     const tool = new ModelComparisonTool();
                     tool.selectedModels = [model];
                     tool.renderRadarChart();
                 }
 
                 // Initialize Environmental Charts (Comparing with others)
-                if (window.CarbonVisualization) {
+                if (typeof CarbonVisualization !== 'undefined') {
                     const viz = new CarbonVisualization();
-                    // We pass all models for context in scatter/bar comparison
                     viz.renderEfficiencyScatterPlot(models);
                     viz.renderCarbonComparison(models);
                 }
