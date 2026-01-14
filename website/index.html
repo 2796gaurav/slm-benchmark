@@ -4,9 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLM Benchmark - Unbiased Small Language Model Evaluation</title>
+    <title>SLM Benchmark - Small Language Model Evaluation Platform</title>
     <meta name="description"
         content="Comprehensive, unbiased benchmarking platform for Small Language Models (1M-3B parameters)">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <style>
         * {
@@ -16,42 +24,61 @@
         }
 
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #7c3aed;
-            --accent: #06b6d4;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --bg: #0f172a;
-            --bg-card: #1e293b;
-            --bg-hover: #334155;
-            --text: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border: #334155;
+            --speed-cyan: #00ffff;
+            --speed-electric: #00e5ff;
+            --speed-blue: #0099ff;
+            --accent-amber: #ffb627;
+            --accent-green: #00ff88;
+            --bg-dark: #0a0e1a;
+            --bg-surface: #141824;
+            --bg-elevated: #1a1f2e;
+            --text-primary: #e8edf4;
+            --text-secondary: #9ca8ba;
+            --text-tertiary: #6b7688;
+            --border-subtle: #232936;
+            --border-medium: #2d3545;
+            --success: #00ff88;
+            --warning: #ffb627;
+            --danger: #ff4757;
+        }
+
+        [data-theme="light"] {
+            --bg-dark: #f8f9fb;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f1f3f5;
+            --text-primary: #1a1f2e;
+            --text-secondary: #4a5568;
+            --text-tertiary: #718096;
+            --border-subtle: #e2e8f0;
+            --border-medium: #cbd5e0;
+            --speed-cyan: #0099ff;
+            --speed-electric: #0088dd;
+            --speed-blue: #0066cc;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
         }
 
         /* Header */
         header {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
+            background: var(--bg-surface);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: all 0.3s ease;
         }
 
         nav {
@@ -59,15 +86,41 @@
             justify-content: space-between;
             align-items: center;
             padding: 1rem 0;
+            gap: 2rem;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--speed-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
         .nav-links {
@@ -77,75 +130,71 @@
         }
 
         .nav-links a {
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-decoration: none;
-            transition: color 0.3s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--speed-cyan);
+            transition: width 0.3s ease;
         }
 
         .nav-links a:hover {
-            color: var(--text);
+            color: var(--text-primary);
         }
 
-        /* Hero Section */
-        .hero {
-            padding: 4rem 0;
-            text-align: center;
+        .nav-links a:hover::after {
+            width: 100%;
         }
 
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .theme-toggle {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
         }
 
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 800px;
-            margin: 0 auto 2rem;
+        .theme-toggle:hover {
+            border-color: var(--speed-cyan);
+            transform: translateY(-1px);
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            margin-top: 0.5rem;
+        .theme-icon {
+            font-size: 1.2rem;
         }
 
         /* Filters */
         .filters {
-            background: var(--bg-card);
+            background: var(--bg-surface);
             padding: 1.5rem;
             border-radius: 12px;
             margin: 2rem 0;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
         }
 
-        .filter-row {
-            display: flex;
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
+            margin-bottom: 1rem;
         }
 
         .filter-group {
@@ -155,24 +204,34 @@
         }
 
         .filter-group label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            font-weight: 500;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         select,
         input[type="search"] {
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-medium);
+            padding: 0.65rem 0.9rem;
             border-radius: 8px;
-            font-size: 0.875rem;
-            min-width: 150px;
+            font-size: 0.9rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        select:focus,
+        input[type="search"]:focus {
+            border-color: var(--speed-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1);
         }
 
         input[type="search"] {
-            min-width: 300px;
+            grid-column: span 2;
         }
 
         .tags {
@@ -182,31 +241,40 @@
         }
 
         .tag {
-            padding: 0.25rem 0.75rem;
-            background: var(--bg);
-            border: 1px solid var(--border);
+            padding: 0.4rem 0.9rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-medium);
             border-radius: 20px;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            font-weight: 500;
         }
 
-        .tag:hover,
+        .tag:hover {
+            background: var(--bg-dark);
+            border-color: var(--speed-cyan);
+            transform: translateY(-1px);
+        }
+
         .tag.active {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--speed-cyan);
+            border-color: var(--speed-cyan);
+            color: var(--bg-dark);
         }
 
-        /* Leaderboard Table */
+        /* Leaderboard */
         .leaderboard {
-            background: var(--bg-card);
+            background: var(--bg-surface);
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
+            transition: all 0.3s ease;
         }
 
         .table-container {
             overflow-x: auto;
+            max-height: calc(100vh - 300px);
         }
 
         table {
@@ -215,58 +283,75 @@
         }
 
         thead {
-            background: rgba(37, 99, 235, 0.1);
+            background: var(--bg-elevated);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         th {
             padding: 1rem;
             text-align: left;
             font-weight: 600;
-            color: var(--text);
+            color: var(--text-primary);
             cursor: pointer;
             user-select: none;
             white-space: nowrap;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-medium);
+            transition: background 0.2s;
         }
 
         th:hover {
-            background: rgba(37, 99, 235, 0.2);
+            background: var(--bg-dark);
         }
 
         th.sortable::after {
             content: ' ↕';
-            opacity: 0.5;
+            opacity: 0.3;
+            margin-left: 0.3rem;
         }
 
         th.sorted-asc::after {
             content: ' ↑';
             opacity: 1;
+            color: var(--speed-cyan);
         }
 
         th.sorted-desc::after {
             content: ' ↓';
             opacity: 1;
+            color: var(--speed-cyan);
         }
 
         td {
             padding: 1rem;
-            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.9rem;
         }
 
-        tr:hover {
-            background: var(--bg-hover);
+        tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-elevated);
         }
 
         .rank {
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
-            font-size: 1.125rem;
+            font-size: 1rem;
         }
 
         .rank-1 {
-            color: #fbbf24;
+            color: var(--accent-amber);
         }
 
         .rank-2 {
-            color: #94a3b8;
+            color: #c0c0c0;
         }
 
         .rank-3 {
@@ -275,53 +360,61 @@
 
         .model-name {
             font-weight: 600;
-            color: var(--primary);
+            color: var(--speed-cyan);
         }
 
         .model-link {
-            color: var(--primary);
+            color: var(--speed-cyan);
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .model-link:hover {
+            color: var(--speed-electric);
             text-decoration: underline;
         }
 
         .score {
+            font-family: 'JetBrains Mono', monospace;
             font-weight: 600;
-            font-size: 1.125rem;
+            font-size: 1rem;
         }
 
         .badge {
             display: inline-block;
-            padding: 0.25rem 0.5rem;
+            padding: 0.25rem 0.6rem;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .badge-quant {
-            background: rgba(124, 58, 237, 0.2);
-            color: var(--secondary);
+            background: rgba(0, 229, 255, 0.15);
+            color: var(--speed-electric);
+            border: 1px solid rgba(0, 229, 255, 0.3);
         }
 
         .badge-size {
-            background: rgba(6, 182, 212, 0.2);
-            color: var(--accent);
+            background: rgba(255, 182, 39, 0.15);
+            color: var(--accent-amber);
+            border: 1px solid rgba(255, 182, 39, 0.3);
         }
 
         .progress-bar {
-            width: 100px;
-            height: 8px;
-            background: var(--bg);
-            border-radius: 4px;
+            width: 80px;
+            height: 6px;
+            background: var(--bg-dark);
+            border-radius: 3px;
             overflow: hidden;
+            border: 1px solid var(--border-subtle);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transition: width 0.3s;
+            background: linear-gradient(90deg, var(--speed-cyan), var(--speed-blue));
+            transition: width 0.5s ease;
         }
 
         /* Loading */
@@ -331,12 +424,12 @@
         }
 
         .spinner {
-            border: 4px solid var(--border);
-            border-top: 4px solid var(--primary);
+            border: 3px solid var(--border-subtle);
+            border-top: 3px solid var(--speed-cyan);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
 
@@ -350,35 +443,14 @@
             }
         }
 
-        /* Buttons */
-        .btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            background: var(--secondary);
-        }
-
         /* Footer */
         footer {
             margin-top: 4rem;
             padding: 2rem 0;
-            border-top: 1px solid var(--border);
+            border-top: 1px solid var(--border-subtle);
             text-align: center;
-            color: var(--text-muted);
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
         }
 
         .footer-links {
@@ -386,34 +458,73 @@
             justify-content: center;
             gap: 2rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         .footer-links a {
-            color: var(--text-muted);
+            color: var(--text-secondary);
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .footer-links a:hover {
-            color: var(--text);
+            color: var(--speed-cyan);
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .filter-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            input[type="search"] {
-                min-width: auto;
-            }
-
             .nav-links {
                 display: none;
             }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            input[type="search"] {
+                grid-column: span 1;
+            }
+
+            .table-container {
+                max-height: calc(100vh - 250px);
+            }
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Scrollbar */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--speed-cyan);
         }
     </style>
 </head>
@@ -422,55 +533,34 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">⚡ SLM Benchmark</div>
-                <ul class="nav-links">
-                    <li><a href="#leaderboard">Leaderboard</a></li>
-                    <li><a href="methodology.html">Methodology</a></li>
-                    <li><a href="submit.html">Submit Model</a></li>
-                    <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
-                </ul>
+                <div class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span>SLM Benchmark</span>
+                </div>
+                <div class="nav-controls">
+                    <ul class="nav-links">
+                        <li><a href="#leaderboard">Leaderboard</a></li>
+                        <li><a href="methodology.html">Methodology</a></li>
+                        <li><a href="submit.html">Submit Model</a></li>
+                        <li><a href="https://github.com/2796gaurav/slm-benchmark" target="_blank">GitHub</a></li>
+                    </ul>
+                    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
             </nav>
         </div>
     </header>
 
     <main>
         <div class="container">
-            <section class="hero">
-                <h1>Unbiased SLM Benchmark</h1>
-                <p>Comprehensive 360° evaluation platform for Small Language Models (1M-3B parameters).
-                    Fully automated, transparent, and reproducible benchmarks for edge devices and real-world
-                    applications.</p>
-
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="model-count">0</div>
-                        <div class="stat-label">Models Tested</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">10+</div>
-                        <div class="stat-label">Benchmark Tasks</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">100%</div>
-                        <div class="stat-label">Open Source</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Cost to Use</div>
-                    </div>
-                </div>
-            </section>
-
             <section class="filters">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label for="search">Search</label>
-                        <input type="search" id="search" placeholder="Search models...">
-                    </div>
+                <div class="filter-grid">
+                    <input type="search" id="search" placeholder="Search models..." aria-label="Search models">
 
                     <div class="filter-group">
                         <label for="sort">Sort By</label>
-                        <select id="sort">
+                        <select id="sort" aria-label="Sort by">
                             <option value="rank">Rank</option>
                             <option value="aggregate">Aggregate Score</option>
                             <option value="reasoning">Reasoning</option>
@@ -483,9 +573,9 @@
 
                     <div class="filter-group">
                         <label for="size-filter">Size</label>
-                        <select id="size-filter">
+                        <select id="size-filter" aria-label="Filter by size">
                             <option value="all">All Sizes</option>
-                            <option value="tiny">Tiny (< 100M)</option>
+                            <option value="tiny">Tiny (&lt; 100M)</option>
                             <option value="small">Small (100M-500M)</option>
                             <option value="medium">Medium (500M-1B)</option>
                             <option value="large">Large (1B-3B)</option>
@@ -494,7 +584,7 @@
 
                     <div class="filter-group">
                         <label for="quant-filter">Quantization</label>
-                        <select id="quant-filter">
+                        <select id="quant-filter" aria-label="Filter by quantization">
                             <option value="all">All</option>
                             <option value="fp16">FP16</option>
                             <option value="q8">Q8_0</option>
@@ -505,7 +595,7 @@
 
                 <div style="margin-top: 1rem;">
                     <label
-                        style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">Categories</label>
+                        style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.5rem; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Categories</label>
                     <div class="tags" id="category-tags"></div>
                 </div>
             </section>
@@ -514,7 +604,7 @@
                 <div class="table-container">
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
-                        <p style="margin-top: 1rem; color: var(--text-muted);">Loading leaderboard...</p>
+                        <p style="margin-top: 1rem; color: var(--text-secondary);">Loading benchmark data...</p>
                     </div>
 
                     <table id="leaderboard-table" style="display: none;">
@@ -537,17 +627,12 @@
                     </table>
                 </div>
             </section>
-
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="submit.html" class="btn">Submit Your Model</a>
-                <a href="methodology.html" class="btn btn-secondary" style="margin-left: 1rem;">Learn More</a>
-            </div>
         </div>
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License. | Updated: Jan 2026</p>
+            <p>&copy; 2026 SLM Benchmark. Open source under Apache 2.0 License.</p>
             <div class="footer-links">
                 <a href="https://github.com/2796gaurav/slm-benchmark">GitHub</a>
                 <a href="https://github.com/2796gaurav/slm-benchmark/issues">Report Issue</a>
@@ -557,7 +642,188 @@
         </div>
     </footer>
 
-    <script src="assets/js/leaderboard.js"></script>
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.querySelector('.theme-icon');
+        const html = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+        });
+
+        // Data will be loaded from external source
+        let mockData = [];
+
+        // Categories
+        const categories = ['All', 'Reasoning', 'Coding', 'Math', 'Language', 'Edge'];
+        const categoryTags = document.getElementById('category-tags');
+
+        categories.forEach((cat, idx) => {
+            const tag = document.createElement('div');
+            tag.className = 'tag' + (idx === 0 ? ' active' : '');
+            tag.textContent = cat;
+            tag.addEventListener('click', () => {
+                document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+                tag.classList.add('active');
+            });
+            categoryTags.appendChild(tag);
+        });
+
+        // Populate table
+        function populateTable(data) {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="rank rank-${item.rank}">#${item.rank}</span></td>
+                    <td><span class="model-name">${item.model}</span></td>
+                    <td><span class="badge badge-size">${item.parameters}</span></td>
+                    <td><span class="score">${item.aggregate.toFixed(1)}</span></td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${item.reasoning}%"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.reasoning.toFixed(1)}</span>
+                    </td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${item.coding}%"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.coding.toFixed(1)}</span>
+                    </td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${item.math}%"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.math.toFixed(1)}</span>
+                    </td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${item.language}%"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.language.toFixed(1)}</span>
+                    </td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${item.edge}%"></div>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-left: 0.5rem;">${item.edge.toFixed(1)}</span>
+                    </td>
+                    <td><span class="badge badge-quant">${item.quantization}</span></td>
+                    <td>
+                        ${item.huggingface ? `<a href="${item.huggingface}" class="model-link" target="_blank" rel="noopener">HF</a>` : ''}
+                        ${item.github ? `<a href="${item.github}" class="model-link" target="_blank" rel="noopener" style="margin-left: 0.5rem;">GH</a>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Sort functionality
+        let currentSort = { column: 'rank', direction: 'asc' };
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.dataset.sort;
+
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'asc';
+                }
+
+                document.querySelectorAll('th').forEach(header => {
+                    header.classList.remove('sorted-asc', 'sorted-desc');
+                });
+
+                th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+                const sortedData = [...mockData].sort((a, b) => {
+                    let aVal = a[column];
+                    let bVal = b[column];
+
+                    if (column === 'parameters') {
+                        aVal = parseFloat(aVal);
+                        bVal = parseFloat(bVal);
+                    }
+
+                    if (currentSort.direction === 'asc') {
+                        return aVal > bVal ? 1 : -1;
+                    } else {
+                        return aVal < bVal ? 1 : -1;
+                    }
+                });
+
+                populateTable(sortedData);
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = mockData.filter(item =>
+                item.model.toLowerCase().includes(query)
+            );
+            populateTable(filtered);
+        });
+
+        // Filter functionality
+        const sizeFilter = document.getElementById('size-filter');
+        const quantFilter = document.getElementById('quant-filter');
+
+        function applyFilters() {
+            let filtered = [...mockData];
+
+            const size = sizeFilter.value;
+            const quant = quantFilter.value;
+
+            if (size !== 'all') {
+                filtered = filtered.filter(item => {
+                    const params = parseFloat(item.parameters);
+                    if (size === 'tiny') return params < 0.1;
+                    if (size === 'small') return params >= 0.1 && params < 0.5;
+                    if (size === 'medium') return params >= 0.5 && params < 1;
+                    if (size === 'large') return params >= 1 && params <= 3;
+                    return true;
+                });
+            }
+
+            if (quant !== 'all') {
+                filtered = filtered.filter(item => item.quantization.toLowerCase().includes(quant.toLowerCase()));
+            }
+
+            populateTable(filtered);
+        }
+
+        sizeFilter.addEventListener('change', applyFilters);
+        quantFilter.addEventListener('change', applyFilters);
+
+        // Initialize - Load data from your data source
+        // Replace this with your actual data loading logic
+        // Example: fetch('data/leaderboard.json').then(res => res.json()).then(data => { mockData = data; ... })
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('leaderboard-table').style.display = 'table';
+            if (mockData.length > 0) {
+                populateTable(mockData);
+            } else {
+                document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 3rem; color: var(--text-secondary);">No benchmark data available. Please load your data source.</td></tr>';
+            }
+        }, 800);
+    </script>
 </body>
 
 </html>
