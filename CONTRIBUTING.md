@@ -1,7 +1,7 @@
 ## Contributing to SLM Benchmark
 
 Thank you for considering a contribution to **SLM Benchmark**. This project aims to be a practical, transparent
-benchmark for **Small Language Models (SLMs, ~1M–3B parameters)** that runs reliably on CPU (including GitHub Actions).
+benchmark for **Small Language Models (SLMs, 1M–5B parameters)** that runs reliably on CPU (including GitHub Actions).
 
 ### Ways to Contribute
 
@@ -40,7 +40,7 @@ benchmark for **Small Language Models (SLMs, ~1M–3B parameters)** that runs re
 ### Model Submissions
 
 - Use the template in `models/submissions/template.yml`.
-- Keep model size ≤ 3B parameters.
+- Keep model size 1M-5B parameters.
 - The model must be:
   - Public on Hugging Face.
   - Licensed to allow benchmarking and result publication.
@@ -58,6 +58,10 @@ See the **“Submission Guide”** section in `README.md` for details.
 
 - Maintainer: **@2796gaurav** on GitHub.
 - For questions, please open a GitHub Issue or Discussion instead of contacting privately where possible.
+
+
+
+
 
 
 

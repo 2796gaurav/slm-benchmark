@@ -63,9 +63,13 @@ If you add a new metric, decide explicitly:
 
 ### Design Principles
 
-- **Small-model first**: always consider 1M–3B models on commodity CPUs as the primary target.
+- **Small-model first**: always consider 1M–5B models on commodity CPUs as the primary target.
 - **Reproducible**: deterministic seeds, explicit configs, and JSON artifacts.
 - **Transparent**: any change to scoring or methodology must be reflected in `README.md` and this guide.
+
+
+
+
 
 
 

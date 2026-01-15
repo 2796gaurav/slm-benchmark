@@ -545,16 +545,16 @@
 
         <div class="stats-bar animate">
             <div class="stat">
-                <span class="stat-value" id="total-models">6</span>
+                <span class="stat-value" id="model-count">0</span>
                 <span class="stat-label">Verified Models</span>
             </div>
             <div class="stat">
-                <span class="stat-value">100%</span>
-                <span class="stat-label">Open Source</span>
+                <span class="stat-value" id="top-model-name">-</span>
+                <span class="stat-label">Top Model</span>
             </div>
             <div class="stat">
-                <span class="stat-value">4</span>
-                <span class="stat-label">Use Cases</span>
+                <span class="stat-value" id="fastest-model">-</span>
+                <span class="stat-label">Fastest (TPS)</span>
             </div>
         </div>
 
@@ -575,11 +575,15 @@
             </div>
         </section>
 
-        <div id="loading" class="loading" style="display: none;">
+        <div id="loading" class="loading" style="display: block;">
             <p>Loading models...</p>
         </div>
 
-        <section class="model-grid" id="model-grid"></section>
+        <div id="no-results" style="display: none; text-align: center; padding: 4rem; color: var(--text-tertiary);">
+            <p>No models found matching your criteria.</p>
+        </div>
+
+        <section class="model-grid" id="model-grid" style="display: none;"></section>
     </main>
 
     <footer>
@@ -598,182 +602,7 @@
         </div>
     </footer>
 
-    <script>
-        const modelData = {
-            models: [
-                {
-                    id: "qwen2.5-3b-instruct",
-                    name: "Qwen2.5-3B-Instruct",
-                    family: "Qwen",
-                    hf_repo: "Qwen/Qwen2.5-3B-Instruct",
-                    parameters: "3.1B",
-                    use_cases: { rag: { score: 87.3 }, coding: { score: 65.3 }, reasoning: { score: 68.2 } },
-                    performance: { quantizations: { q4: { tps_output: 38.7, ram_gb: 4.1 } } },
-                    aggregate_score: 74.3,
-                    context_window: 32768,
-                    tags: ["multilingual", "edge-ready"],
-                    best_for: ["RAG Specialists", "Multi-turn Chat"]
-                },
-                {
-                    id: "phi-3.5-mini-3.8b",
-                    name: "Phi-3.5-Mini-3.8B",
-                    family: "Phi",
-                    hf_repo: "microsoft/Phi-3.5-mini-instruct",
-                    parameters: "3.8B",
-                    use_cases: { rag: { score: 82.1 }, coding: { score: 71.8 }, reasoning: { score: 75.6 } },
-                    performance: { quantizations: { q4: { tps_output: 32.1, ram_gb: 5.2 } } },
-                    aggregate_score: 75.8,
-                    context_window: 131072,
-                    tags: ["reasoning", "long-context"],
-                    best_for: ["Logical Reasoning", "Complex Coding"]
-                },
-                {
-                    id: "llama-3.2-3b-instruct",
-                    name: "Llama-3.2-3B-Instruct",
-                    family: "Llama",
-                    hf_repo: "meta-llama/Llama-3.2-3B-Instruct",
-                    parameters: "3.2B",
-                    use_cases: { rag: { score: 79.4 }, function_calling: { score: 74.8 } },
-                    performance: { quantizations: { q4: { tps_output: 36.4, ram_gb: 3.8 } } },
-                    aggregate_score: 72.7,
-                    context_window: 131072,
-                    tags: ["function-calling", "multilingual"],
-                    best_for: ["Tool Use", "Agents"]
-                },
-                {
-                    id: "smollm2-1.7b-instruct",
-                    name: "SmolLM2-1.7B-Instruct",
-                    family: "SmolLM",
-                    hf_repo: "HuggingFaceTB/SmolLM2-1.7B-Instruct",
-                    parameters: "1.7B",
-                    use_cases: { function_calling: { score: 76.2 }, rag: { score: 71.2 } },
-                    performance: { quantizations: { q4: { tps_output: 48.2, ram_gb: 2.1 } } },
-                    aggregate_score: 68.0,
-                    context_window: 8192,
-                    tags: ["lightweight", "fast-inference"],
-                    best_for: ["Raspberry Pi", "Low-RAM Devices"]
-                },
-                {
-                    id: "gemma-2-2.6b-it",
-                    name: "Gemma-2-2.6B-IT",
-                    family: "Gemma",
-                    hf_repo: "google/gemma-2-2b-it",
-                    parameters: "2.6B",
-                    use_cases: { reasoning: { score: 72.4 }, coding: { score: 68.7 } },
-                    performance: { quantizations: { q4: { tps_output: 42.1, ram_gb: 3.4 } } },
-                    aggregate_score: 72.1,
-                    context_window: 8192,
-                    tags: ["google", "safe"],
-                    best_for: ["Safety Critical", "General Q&A"]
-                },
-                {
-                    id: "ministral-3b-instruct",
-                    name: "Ministral-3B-Instruct",
-                    family: "Ministral",
-                    hf_repo: "mistralai/Ministral-3B-Instruct-2410",
-                    parameters: "3.0B",
-                    use_cases: { rag: { score: 88.5 }, coding: { score: 74.2 } },
-                    performance: { quantizations: { q4: { tps_output: 35.2, ram_gb: 4.5 } } },
-                    aggregate_score: 81.3,
-                    context_window: 131072,
-                    tags: ["mistral", "high-accuracy"],
-                    best_for: ["Enterprise RAG", "Instruction Following"]
-                }
-            ]
-        };
-
-        let allModels = modelData.models;
-        let currentFilter = 'all';
-
-        function renderModels(models) {
-            const grid = document.getElementById('model-grid');
-            grid.innerHTML = '';
-
-            models.forEach((model, index) => {
-                const q4 = model.performance.quantizations.q4;
-                const card = document.createElement('div');
-                card.className = 'model-card animate';
-                card.style.animationDelay = `${index * 0.05}s`;
-
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-title">
-                            <div class="card-family">${model.family} • ${model.parameters}</div>
-                            <h3>${model.name}</h3>
-                        </div>
-                        <div class="score-badge">${model.aggregate_score}</div>
-                    </div>
-                    <div class="card-description">${model.best_for.join(' • ')}</div>
-                    <div class="card-stats">
-                        <div class="stat-item">
-                            <div class="stat-item-label">TPS (Q4)</div>
-                            <div class="stat-item-value">${q4.tps_output}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-item-label">RAM</div>
-                            <div class="stat-item-value">${q4.ram_gb}GB</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-item-label">Context</div>
-                            <div class="stat-item-value">${(model.context_window / 1024).toFixed(0)}K</div>
-                        </div>
-                    </div>
-                    <div class="card-tags">
-                        <span class="tag">${model.parameters}</span>
-                        ${model.tags.slice(0, 2).map(tag => `<span class="tag">${tag}</span>`).join('')}
-                    </div>
-                    <div class="card-footer">
-                        <div class="card-repo">${model.hf_repo.split('/')[1]}</div>
-                        <div class="card-action">
-                            View Details
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </div>
-                    </div>
-                `;
-
-                card.addEventListener('click', () => {
-                    window.open(`https://huggingface.co/${model.hf_repo}`, '_blank');
-                });
-
-                grid.appendChild(card);
-            });
-
-            document.getElementById('total-models').textContent = models.length;
-        }
-
-        function applyFilters() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-
-            const filtered = allModels.filter(model => {
-                const matchesSearch =
-                    model.name.toLowerCase().includes(searchTerm) ||
-                    model.family.toLowerCase().includes(searchTerm) ||
-                    model.best_for.some(tag => tag.toLowerCase().includes(searchTerm));
-
-                const matchesFilter = currentFilter === 'all' ||
-                    (model.use_cases && model.use_cases[currentFilter]);
-
-                return matchesSearch && matchesFilter;
-            });
-
-            renderModels(filtered);
-        }
-
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelector('.filter-btn.active').classList.remove('active');
-                btn.classList.add('active');
-                currentFilter = btn.dataset.filter;
-                applyFilters();
-            });
-        });
-
-        document.getElementById('search-input').addEventListener('input', applyFilters);
-
-        renderModels(allModels);
-    </script>
+    <script src="./assets/js/marketplace.js"></script>
 </body>
 
 </html>

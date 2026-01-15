@@ -1,7 +1,7 @@
 torch
 transformers>=4.38.0
 accelerate
-datasets
+datasets>=2.14.0
 lm-eval
 pyyaml
 huggingface_hub
@@ -11,3 +11,5 @@ pandas
 tqdm
 llama-cpp-python  # For GGUF support
 codecarbon==3.2.1
+bfcl-eval==2025.12.17
+psutil

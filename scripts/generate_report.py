@@ -12,14 +12,10 @@ def main():
     results_dir = Path(args.results_dir)
     print(f"Scanning results in {results_dir}")
     
-    # Placeholder for aggregation logic
-    # In a real scenario, we would parse specific metric files (MMLU, hellaswag, etc.)
-    # Here we simulate finding results
-    
     # Aggregate results from found files
     found_files = list(results_dir.glob("**/*.json"))
     
-    # Initialize aggregation structure
+    # Initialize aggregation structure with all marketplace benchmarks
     full_report = {
         "aggregate_scores": {},
         "detailed": {},
@@ -29,7 +25,12 @@ def main():
         "math_scores": {},
         "language_scores": {},
         "edge_metrics": {},
-        "safety_scores": {}
+        "safety_scores": {},
+        "rag_scores": {},
+        "function_calling_scores": {},
+        "guardrails_scores": {},
+        "domain_scores": {},
+        "cpu_performance": {}
     }
     
     valid_results = 0
@@ -49,24 +50,35 @@ def main():
                     total_aggregate += data['aggregate_score']
                     valid_results += 1
                     
-                    # Merge individual category scores (simple first-found or last-found merge for now)
-                    # Ideally we would average if multiple quantizations provided different scores
-                    for key in ["reasoning_scores", "coding_scores", "math_scores", "language_scores", "edge_metrics", "safety_scores"]:
+                    # Merge all benchmark category scores
+                    benchmark_keys = [
+                        "reasoning_scores", "coding_scores", "math_scores", "language_scores",
+                        "edge_metrics", "safety_scores", "rag_scores", "function_calling_scores",
+                        "guardrails_scores", "domain_scores", "cpu_performance"
+                    ]
+                    for key in benchmark_keys:
                         if key in data and data[key]:
-                            full_report[key] = data[key]
+                            # Merge or update existing data
+                            if key not in full_report or not full_report[key]:
+                                full_report[key] = data[key]
+                            elif isinstance(full_report[key], dict) and isinstance(data[key], dict):
+                                # Merge dictionaries
+                                full_report[key].update(data[key])
                             
         except Exception as e:
             print(f"Skipping invalid file {f}: {e}")
-
+    
     # Calculate final average aggregate score across quantizations
     if valid_results > 0:
         full_report["aggregate_score"] = total_aggregate / valid_results
     else:
-        # Fallback for empty results
         print("Warning: No valid benchmark results found.")
 
     # Save processed report
-    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    output_dir = os.path.dirname(args.output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    
     with open(args.output, 'w') as f:
         json.dump(full_report, f, indent=2)
     

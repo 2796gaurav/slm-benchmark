@@ -7,7 +7,7 @@ This guide lists common problems and how to fix them when running the benchmark 
 - **Symptom**: Out-of-memory, CUDA errors, or timeouts.
 - **Fixes**:
   - Force CPU: `export CUDA_VISIBLE_DEVICES=""` before running.
-  - Use small models (≤ 3B parameters; preferably ≤ 1B for CI).
+  - Use small models (1M-5B parameters; preferably ≤ 3B for CI).
   - Use `--limit` and small `--batch-size` for smoke tests:
     ```bash
     python benchmarks/evaluation/run_benchmark.py \
@@ -66,6 +66,10 @@ This guide lists common problems and how to fix them when running the benchmark 
 - If a metric seems off:
   - Inspect the raw JSON under `results/raw/...`.
   - File an issue with a sample of the raw JSON and your environment details.
+
+
+
+
 
 
 

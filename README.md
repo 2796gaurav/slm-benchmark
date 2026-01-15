@@ -99,7 +99,7 @@ python -m http.server 8080
 | **Tiny** (100M-500M) | SmolLM2-135M/360M, Qwen2.5-0.5B |
 | **Small** (500M-1.5B) | SmolLM2-1.7B, Llama-3.2-1B, Qwen2.5-1.5B |
 | **Medium** (1.5B-3B) | Qwen2.5-3B, Llama-3.2-3B, Gemma-2-2.6B |
-| **Large** (3B-5B) | Phi-3.5-Mini-3.8B, Gemma3-4B |
+| **Large** (3B-5B) | Phi-3.5-Mini-3.8B, Gemma3-4B, Qwen2.5-4B |
 
 ## 🤝 Contributing
 

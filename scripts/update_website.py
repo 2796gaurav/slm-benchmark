@@ -6,6 +6,18 @@ import shutil
 from pathlib import Path
 
 def update_website(registry_file: str, output_file: str):
+    """Copy registry to website data directory"""
+    import os
+    
+    # Ensure output directory exists
+    output_dir = os.path.dirname(output_file)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    
+    # Verify registry file exists
+    if not os.path.exists(registry_file):
+        raise FileNotFoundError(f"Registry file not found: {registry_file}")
+    
     # Copy registry to website data
     shutil.copy(registry_file, output_file)
     print(f"✅ Website data updated: {output_file}")

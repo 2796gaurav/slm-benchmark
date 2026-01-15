@@ -22,14 +22,34 @@ from lm_eval import evaluator
 from lm_eval.models.huggingface import HFLM
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-# Import custom benchmarks
-from edge_benchmark import EdgeBenchmark
-from quantization_bench import QuantizationBenchmark
-from safety_eval import SafetyEvaluator
-from carbon_tracker import CarbonTrackerWrapper
-from fine_tuning_benchmark import FineTuningEfficiency
-from long_context_eval import LongContextEvaluator
-from bias_fairness_eval import BiasAndFairnessEvaluator
+# Import custom benchmarks (relative imports for same directory)
+try:
+    from .edge_benchmark import EdgeBenchmark
+    from .quantization_bench import QuantizationBenchmark
+    from .safety_eval import SafetyEvaluator
+    from .carbon_tracker import CarbonTrackerWrapper
+    from .fine_tuning_benchmark import FineTuningEfficiency
+    from .long_context_eval import LongContextEvaluator
+    from .bias_fairness_eval import BiasAndFairnessEvaluator
+    from .cpu_performance import CPUPerformanceBenchmark
+    from .rag_eval import RAGEvaluator
+    from .function_calling_eval import FunctionCallingEvaluator
+    from .guardrails_eval import GuardrailsEvaluator
+    from .domain_eval import DomainEvaluator
+except ImportError:
+    # Fallback for direct execution
+    from edge_benchmark import EdgeBenchmark
+    from quantization_bench import QuantizationBenchmark
+    from safety_eval import SafetyEvaluator
+    from carbon_tracker import CarbonTrackerWrapper
+    from fine_tuning_benchmark import FineTuningEfficiency
+    from long_context_eval import LongContextEvaluator
+    from bias_fairness_eval import BiasAndFairnessEvaluator
+    from cpu_performance import CPUPerformanceBenchmark
+    from rag_eval import RAGEvaluator
+    from function_calling_eval import FunctionCallingEvaluator
+    from guardrails_eval import GuardrailsEvaluator
+    from domain_eval import DomainEvaluator
 
 # Configure logging
 logging.basicConfig(
@@ -226,6 +246,20 @@ class SLMBenchmark:
             logger.error("  4. Try: huggingface-cli login (if private model)")
             raise RuntimeError(f"Model loading failed for {self.config.hf_repo}: {e}") from e
     
+    def load_tokenizer(self):
+        """Load tokenizer for CPU performance benchmarks"""
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.config.hf_repo,
+                trust_remote_code=True
+            )
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+            return tokenizer
+        except Exception as e:
+            logger.warning(f"Failed to load tokenizer: {e}")
+            return None
+    
     def run_reasoning_benchmarks(self, model) -> Dict:
         """Run reasoning benchmarks"""
         logger.info("Running reasoning benchmarks...")
@@ -254,25 +288,93 @@ class SLMBenchmark:
             return {}
     
     def run_coding_benchmarks(self, model) -> Dict:
-        """Run coding benchmarks"""
+        """Run coding benchmarks
+        
+        Tests:
+        - HumanEval: 164 Python function completion problems
+        - MBPP: 974 basic Python programming problems
+        - EvalPlus: Extended HumanEval with additional test cases (164+ problems)
+        - MultiPL-E: Multi-language code generation (19 languages, 164 problems)
+        """
         logger.info("Running coding benchmarks...")
         
-        tasks = ['humaneval', 'mbpp']
+        results = {}
         
+        # HumanEval (164 problems)
         try:
-            results = evaluator.simple_evaluate(
+            logger.info("  Running HumanEval...")
+            humaneval_results = evaluator.simple_evaluate(
                 model=model,
-                tasks=tasks,
-                num_fewshot=0, # Coding tasks usually differ in fewshot support, safer to use 0
-                batch_size=1,  # Coding tasks need batch_size=1
+                tasks=['humaneval'],
+                num_fewshot=0,
+                batch_size=1,
                 device='cuda' if torch.cuda.is_available() else 'cpu',
-                limit=self.config.limit,
-                confirm_run_unsafe_code=True  # Required for executing coding benchmarks
+                limit=self.config.limit or 164,  # Full dataset
+                confirm_run_unsafe_code=True
             )
-            return results['results']
+            results['humaneval'] = humaneval_results.get('results', {})
+            results['humaneval']['dataset_size'] = 164
         except Exception as e:
-            logger.error(f"Coding benchmarks failed: {e}")
-            return {}
+            logger.error(f"HumanEval failed: {e}")
+            results['humaneval'] = {'error': str(e)}
+        
+        # MBPP (974 problems)
+        try:
+            logger.info("  Running MBPP...")
+            mbpp_results = evaluator.simple_evaluate(
+                model=model,
+                tasks=['mbpp'],
+                num_fewshot=0,
+                batch_size=1,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit or 500,  # Sample from 974
+                confirm_run_unsafe_code=True
+            )
+            results['mbpp'] = mbpp_results.get('results', {})
+            results['mbpp']['dataset_size'] = 974
+            results['mbpp']['samples_tested'] = min(self.config.limit or 500, 974)
+        except Exception as e:
+            logger.error(f"MBPP failed: {e}")
+            results['mbpp'] = {'error': str(e)}
+        
+        # EvalPlus (Extended HumanEval)
+        try:
+            logger.info("  Running EvalPlus...")
+            evalplus_results = evaluator.simple_evaluate(
+                model=model,
+                tasks=['evalplus'],
+                num_fewshot=0,
+                batch_size=1,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit or 164,
+                confirm_run_unsafe_code=True
+            )
+            results['evalplus'] = evalplus_results.get('results', {})
+            results['evalplus']['dataset_size'] = 164
+        except Exception as e:
+            logger.warning(f"EvalPlus not available: {e}")
+            results['evalplus'] = {'note': 'EvalPlus not available'}
+        
+        # MultiPL-E (19 languages)
+        try:
+            logger.info("  Running MultiPL-E...")
+            multipl_e_results = evaluator.simple_evaluate(
+                model=model,
+                tasks=['multipl_e'],
+                num_fewshot=0,
+                batch_size=1,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit or 100,  # Sample across languages
+                confirm_run_unsafe_code=True
+            )
+            results['multipl_e'] = multipl_e_results.get('results', {})
+            results['multipl_e']['languages'] = 19
+            results['multipl_e']['problems_per_language'] = 164
+        except Exception as e:
+            logger.warning(f"MultiPL-E not available: {e}")
+            results['multipl_e'] = {'note': 'MultiPL-E not available'}
+        
+        return results
     
     def run_math_benchmarks(self, model) -> Dict:
         """Run math benchmarks"""
@@ -359,28 +461,50 @@ class SLMBenchmark:
         return scores
     
     def calculate_aggregate_score(self) -> float:
-        """Calculate weighted aggregate score"""
+        """Calculate weighted aggregate score for marketplace"""
         # Hardware-dependent metrics (edge, efficiency, carbon) are *not*
         # included in the aggregate score used for rankings. This keeps
         # scores comparable across heterogeneous environments (e.g. local
         # runs vs. GitHub Actions CPU runners).
+        
+        # Marketplace weights (use-case focused)
         weights = {
-            'reasoning': 0.35,
-            'coding': 0.20,
-            'math': 0.15,
-            'language': 0.20,
-            'safety': 0.20,
+            'rag': 0.25,
+            'function_calling': 0.20,
+            'coding': 0.15,
+            'reasoning': 0.15,
+            'guardrails': 0.15,
+            'math': 0.10,
         }
 
         scores = {
-            'reasoning': self._average_scores(self.results.get('reasoning_scores', {})),
+            'rag': self.results.get('rag_scores', {}).get('aggregate_score', 0.0),
+            'function_calling': self.results.get('function_calling_scores', {}).get('aggregate_score', 0.0),
             'coding': self._average_scores(self.results.get('coding_scores', {})),
+            'reasoning': self._average_scores(self.results.get('reasoning_scores', {})),
+            'guardrails': self.results.get('guardrails_scores', {}).get('aggregate_score', 0.0),
             'math': self._average_scores(self.results.get('math_scores', {})),
-            'language': self._average_scores(self.results.get('language_scores', {})),
-            'safety': self._average_scores(self.results.get('safety_scores', {})),
         }
+        
+        # Fallback to old weights if new benchmarks not available
+        if scores['rag'] == 0.0 and scores['function_calling'] == 0.0:
+            # Use legacy weights
+            weights = {
+                'reasoning': 0.35,
+                'coding': 0.20,
+                'math': 0.15,
+                'language': 0.20,
+                'safety': 0.20,
+            }
+            scores = {
+                'reasoning': self._average_scores(self.results.get('reasoning_scores', {})),
+                'coding': self._average_scores(self.results.get('coding_scores', {})),
+                'math': self._average_scores(self.results.get('math_scores', {})),
+                'language': self._average_scores(self.results.get('language_scores', {})),
+                'safety': self._average_scores(self.results.get('safety_scores', {})),
+            }
 
-        aggregate = sum(scores[k] * weights[k] for k in weights.keys())
+        aggregate = sum(scores[k] * weights.get(k, 0) for k in scores.keys() if k in weights)
         return aggregate
     
     def _average_scores(self, score_dict: Dict) -> float:
@@ -411,6 +535,56 @@ class SLMBenchmark:
         
         return sum(values) / len(values) if values else 0.0
     
+    def run_rag_benchmarks(self, model) -> Dict:
+        """Run RAG-specific benchmarks"""
+        try:
+            evaluator = RAGEvaluator(model, self.config)
+            return evaluator.evaluate_all()
+        except Exception as e:
+            logger.error(f"RAG benchmarks failed: {e}")
+            return {}
+    
+    def run_function_calling_benchmarks(self, model) -> Dict:
+        """Run function calling benchmarks"""
+        try:
+            evaluator = FunctionCallingEvaluator(model, self.config)
+            return evaluator.evaluate_all()
+        except Exception as e:
+            logger.error(f"Function calling benchmarks failed: {e}")
+            return {}
+    
+    def run_guardrails_benchmarks(self, model) -> Dict:
+        """Run guardrails and safety benchmarks"""
+        try:
+            evaluator = GuardrailsEvaluator(model, self.config)
+            return evaluator.evaluate_all()
+        except Exception as e:
+            logger.error(f"Guardrails benchmarks failed: {e}")
+            return {}
+    
+    def run_domain_benchmarks(self, model) -> Dict:
+        """Run domain-specific benchmarks"""
+        try:
+            evaluator = DomainEvaluator(model, self.config)
+            return evaluator.evaluate_all()
+        except Exception as e:
+            logger.error(f"Domain benchmarks failed: {e}")
+            return {}
+    
+    def run_cpu_performance_benchmarks(self, model) -> Dict:
+        """Run CPU-only performance benchmarks"""
+        try:
+            tokenizer = self.load_tokenizer()
+            if tokenizer is None:
+                logger.warning("Tokenizer not available, skipping CPU performance benchmarks")
+                return {}
+            
+            perf_bench = CPUPerformanceBenchmark(model, tokenizer, self.config)
+            return perf_bench.run_full_benchmark()
+        except Exception as e:
+            logger.error(f"CPU performance benchmarks failed: {e}")
+            return {}
+    
     def run_full_benchmark(self) -> BenchmarkResult:
         """Run complete benchmark suite"""
         logger.info(f"Starting benchmark for {self.config.model_name}")
@@ -418,7 +592,6 @@ class SLMBenchmark:
         
         # Start carbon tracking
         self.carbon_tracker.start()
-        
         
         # Load model
         model = self.load_model()
@@ -430,9 +603,15 @@ class SLMBenchmark:
         self.results['language_scores'] = self.run_language_benchmarks(model)
         self.results['edge_metrics'] = self.run_edge_benchmarks(model)
         self.results['safety_scores'] = self.run_safety_benchmarks(model)
-        # self.results['tool_use_scores'] = self.run_tool_use_benchmarks(model) - Removed as per request
         self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
         self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
+        
+        # New marketplace benchmarks
+        self.results['rag_scores'] = self.run_rag_benchmarks(model)
+        self.results['function_calling_scores'] = self.run_function_calling_benchmarks(model)
+        self.results['guardrails_scores'] = self.run_guardrails_benchmarks(model)
+        self.results['domain_scores'] = self.run_domain_benchmarks(model)
+        self.results['cpu_performance'] = self.run_cpu_performance_benchmarks(model)
         
         # Calculate aggregate
         aggregate_score = self.calculate_aggregate_score()
@@ -443,17 +622,11 @@ class SLMBenchmark:
         # Calculate efficiency score
         efficiency_score = 0.0
         if env_metrics and env_metrics.get('energy_consumed_kwh', 0) > 0:
-            # Formula: Accuracy / Energy(kWh)
-            # Baseline: 1 kWh
             efficiency_score = (aggregate_score / env_metrics['energy_consumed_kwh'])
         elif env_metrics: 
-             # Fallback if energy is too low to measure (very fast run)
-             # Avoid infinity, set to a high cap based on latency?
-             # For now, just set to 0 or handle effectively.
-             efficiency_score = 0.0 # Or maybe aggregate_score * 10 (arbitrary boost for efficiency)
+             efficiency_score = 0.0
              if aggregate_score > 0:
                   logger.warning("Energy consumption near zero, efficiency score may be inaccurate")
-        
         
         # Create result object
         result = BenchmarkResult(

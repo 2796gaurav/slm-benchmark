@@ -6,7 +6,7 @@ import glob
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--submission-file", required=True)
-    parser.add_argument("--max-params", type=int, default=3000000000)
+    parser.add_argument("--max-params", type=int, default=5000000000)
     args = parser.parse_args()
 
     files = glob.glob(args.submission_file)

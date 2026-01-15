@@ -82,7 +82,7 @@ model:
   1. Rate limit check (max 3 submissions/user/week)
   2. YAML schema validation
   3. HuggingFace model existence check
-  4. Parameter count verification (≤ 3B)
+  4. Parameter count verification (1M-5B)
   5. Duplicate detection
   6. Cost estimation
 - **Output**: Validation report posted as PR comment

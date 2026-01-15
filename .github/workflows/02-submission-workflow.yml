@@ -179,12 +179,20 @@ jobs:
       
       - name: Process results
         run: |
+          # Ensure processed directory exists
+          mkdir -p results/processed/
+          
           python scripts/generate_report.py \
             --results-dir results/raw/ \
             --output results/processed/latest_benchmark.json
           
           SUBMISSION_FILE=$(find models/submissions -name "*.yaml" -type f | head -n 1)
-          cp "$SUBMISSION_FILE" results/processed/submission.yaml
+          if [ -f "$SUBMISSION_FILE" ]; then
+            cp "$SUBMISSION_FILE" results/processed/submission.yaml
+          else
+            echo "Warning: Submission file not found: $SUBMISSION_FILE"
+            exit 1
+          fi
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -199,16 +207,36 @@ jobs:
         with:
           script: |
               const fs = require('fs');
-              const results = JSON.parse(fs.readFileSync('results/processed/latest_benchmark.json', 'utf8'));
+              const path = require('path');
               
-              const comment = `## 🎯 Full Benchmark Results
-              
-              | Metric | Score |
-              |--------|-------|
-              | **Aggregate** | **${results.aggregate_score?.toFixed(2) || 'N/A'}** |
-              | Efficiency Score | ${results.efficiency_score?.toFixed(2) || 'N/A'} |
-              
-              Ready to publish? Run \`/publish-results\``;
+              let comment = '';
+              try {
+                  const resultsPath = 'results/processed/latest_benchmark.json';
+                  if (fs.existsSync(resultsPath)) {
+                      const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+                      
+                      comment = `## 🎯 Full Benchmark Results
+                      
+                      | Metric | Score |
+                      |--------|-------|
+                      | **Aggregate** | **${results.aggregate_score?.toFixed(2) || 'N/A'}** |
+                      | Efficiency Score | ${results.efficiency_score?.toFixed(2) || 'N/A'} |
+                      
+                      Ready to publish? Run \`/publish-results\``;
+                  } else {
+                      comment = `## ⚠️ Benchmark Completed
+                      
+                      Results processed but summary file not found. Please check artifacts for detailed results.
+                      
+                      Ready to publish? Run \`/publish-results\``;
+                  }
+              } catch (error) {
+                  comment = `## ⚠️ Benchmark Completed with Warnings
+                  
+                  Results generated but summary parsing failed: ${error.message}
+                  
+                  Please check artifacts for detailed results.`;
+              }
               
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
@@ -257,6 +285,17 @@ jobs:
       
       - name: Update registry & leaderboard
         run: |
+            # Check if results file exists
+            if [ ! -f "results/processed/latest_benchmark.json" ]; then
+              echo "Error: Benchmark results file not found"
+              exit 1
+            fi
+            
+            if [ ! -f "results/processed/submission.yaml" ]; then
+              echo "Error: Submission file not found"
+              exit 1
+            fi
+            
             python scripts/update_registry.py \
              --submission results/processed/submission.yaml \
              --results results/processed/latest_benchmark.json \

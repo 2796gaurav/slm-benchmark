@@ -23,7 +23,8 @@ from huggingface_hub import HfApi, model_info, list_repo_files
 class SubmissionValidator:
     """Validates model submissions"""
     
-    MAX_PARAMS = 3_000_000_000  # 3B parameters
+    MAX_PARAMS = 5_000_000_000  # 5B parameters (SLM limit)
+    MIN_PARAMS = 1_000_000  # 1M parameters (minimum for SLMs)
     REQUIRED_FIELDS = [
         'name', 'family', 'hf_repo', 'parameters', 
         'architecture', 'license', 'submitted_by'
@@ -93,11 +94,11 @@ class SubmissionValidator:
             
             if num_params > self.MAX_PARAMS:
                 self.errors.append(
-                    f"Model has {param_str} parameters, exceeds 3B limit"
+                    f"Model has {param_str} parameters, exceeds 5B limit for SLMs"
                 )
-            elif num_params < 1_000_000:  # 1M minimum
-                self.warnings.append(
-                    f"Model has only {param_str} parameters, very small for meaningful benchmarks"
+            elif num_params < self.MIN_PARAMS:
+                self.errors.append(
+                    f"Model has {param_str} parameters, below 1M minimum for SLMs"
                 )
             
             model['_parsed_params'] = num_params

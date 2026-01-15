@@ -9,7 +9,7 @@ model:
   hf_revision: "main"
   
   # Specifications
-  parameters: ""  # e.g., "1.7B" (must be ≤3B)
+  parameters: ""  # e.g., "1.7B" (must be 1M-5B)
   architecture: ""  # e.g., "llama", "phi", "qwen"
   context_length: 0  # e.g., 8192
   license: "Apache-2.0"
