@@ -237,11 +237,14 @@ jobs:
           
           echo "Running full benchmark for $SUBMISSION_FILE"
           
+          # Run with optimized limits and task timeout
+          # Optimizations: MBPP (200), MultiPL-E (20/lang), EvalPlus (100)
           python benchmarks/evaluation/run_benchmark.py \
             --submission-file "$SUBMISSION_FILE" \
             --output-dir results/raw/ \
             --save-logs \
             --enable-carbon-tracking \
+            --task-timeout 3600 \
             --timestamp $TIMESTAMP
       
       - name: Process results
