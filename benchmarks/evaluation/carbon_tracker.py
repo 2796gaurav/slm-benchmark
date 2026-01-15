@@ -1,9 +1,16 @@
 import logging
 import os
 from typing import Dict, Any, Optional
-from codecarbon import EmissionsTracker
 
 logger = logging.getLogger(__name__)
+
+# Make codecarbon import optional to avoid dependency conflicts
+try:
+    from codecarbon import EmissionsTracker
+    CODECARBON_AVAILABLE = True
+except ImportError:
+    CODECARBON_AVAILABLE = False
+    EmissionsTracker = None  # type: ignore
 
 class CarbonTrackerWrapper:
     """
@@ -12,9 +19,14 @@ class CarbonTrackerWrapper:
     def __init__(self, output_dir: str, enable: bool = True):
         self.enabled = enable
         self.output_dir = output_dir
-        self.tracker: Optional[EmissionsTracker] = None
+        self.tracker: Optional[Any] = None
         
         if self.enabled:
+            if not CODECARBON_AVAILABLE:
+                logger.warning("codecarbon is not installed. Carbon tracking will be disabled. Install with: pip install codecarbon")
+                self.enabled = False
+                return
+                
             try:
                 # Create output directory for carbon logs
                 os.makedirs(output_dir, exist_ok=True)
