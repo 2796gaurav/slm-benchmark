@@ -11,5 +11,6 @@ pandas
 tqdm
 llama-cpp-python  # For GGUF support
 codecarbon==3.2.1
+fief-client>=0.18.0  # Pin to version that supports 'cli' extra to avoid warnings
 bfcl-eval==2025.12.17
 psutil
