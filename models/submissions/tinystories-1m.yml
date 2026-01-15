@@ -1,0 +1,37 @@
+model:
+  # Basic Information
+  name: "TinyStories-1M"
+  family: "TinyStories"
+  version: "1.0"
+  
+  # Hugging Face
+  hf_repo: "roneneldan/TinyStories-1M"
+  hf_revision: "main"
+  
+  # Specifications
+  parameters: "1M"
+  architecture: "gpt_neo"
+  context_length: 2048
+  license: "Apache-2.0"
+  
+  # Quantizations to test
+  quantizations:
+    - name: "FP16"
+      format: "safetensors"
+  
+  # Categories
+  categories:
+    - "reasoning"
+    - "coding"
+    - "language"
+  
+  # Submission Info
+  submitted_by: "2796gaurav"
+  submitted_date: "2026-01-15"
+  contact: "2796gaurav@gmail.com"
+  
+  # Optional: Testing Preferences
+  testing:
+    priority: "standard"
+    skip_safety: false
+    edge_devices: ["cpu"]
