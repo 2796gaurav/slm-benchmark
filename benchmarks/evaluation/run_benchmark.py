@@ -77,6 +77,7 @@ class BenchmarkConfig:
         safety_tests: Run safety and bias tests (default: True)
         enable_carbon_tracking: Track energy consumption (default: False)
         limit: Limit samples per task for testing (default: None = no limit)
+        quick_test: Quick test mode - run only essential tasks (default: False)
     """
     model_name: str
     hf_repo: str
@@ -91,6 +92,7 @@ class BenchmarkConfig:
     safety_tests: bool = True
     enable_carbon_tracking: bool = False
     limit: int = None  # Limit number of samples per task
+    quick_test: bool = False  # Quick test mode - run only essential tasks with minimal samples
 
 
 @dataclass
@@ -286,6 +288,30 @@ class SLMBenchmark:
             logger.error(f"Reasoning benchmarks failed: {e}")
             logger.warning("Returning empty results for reasoning")
             return {}
+    
+    def run_quick_coding_benchmarks(self, model) -> Dict:
+        """Run only HumanEval for quick tests"""
+        logger.info("Running quick coding benchmark (HumanEval only)...")
+        results = {}
+        
+        try:
+            logger.info("  Running HumanEval...")
+            humaneval_results = evaluator.simple_evaluate(
+                model=model,
+                tasks=['humaneval'],
+                num_fewshot=0,
+                batch_size=1,
+                device='cuda' if torch.cuda.is_available() else 'cpu',
+                limit=self.config.limit or 10,  # Very small sample for quick test
+                confirm_run_unsafe_code=True
+            )
+            results['humaneval'] = humaneval_results.get('results', {})
+            results['humaneval']['dataset_size'] = 164
+        except Exception as e:
+            logger.error(f"HumanEval failed: {e}")
+            results['humaneval'] = {'error': str(e)}
+        
+        return results
     
     def run_coding_benchmarks(self, model) -> Dict:
         """Run coding benchmarks
@@ -588,6 +614,8 @@ class SLMBenchmark:
     def run_full_benchmark(self) -> BenchmarkResult:
         """Run complete benchmark suite"""
         logger.info(f"Starting benchmark for {self.config.model_name}")
+        if self.config.quick_test:
+            logger.info("QUICK TEST MODE: Running minimal subset of benchmarks")
         start_time = time.time()
         
         # Start carbon tracking
@@ -596,22 +624,41 @@ class SLMBenchmark:
         # Load model
         model = self.load_model()
         
-        # Run all benchmarks
-        self.results['reasoning_scores'] = self.run_reasoning_benchmarks(model)
-        self.results['coding_scores'] = self.run_coding_benchmarks(model)
-        self.results['math_scores'] = self.run_math_benchmarks(model)
-        self.results['language_scores'] = self.run_language_benchmarks(model)
-        self.results['edge_metrics'] = self.run_edge_benchmarks(model)
-        self.results['safety_scores'] = self.run_safety_benchmarks(model)
-        self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
-        self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
-        
-        # New marketplace benchmarks
-        self.results['rag_scores'] = self.run_rag_benchmarks(model)
-        self.results['function_calling_scores'] = self.run_function_calling_benchmarks(model)
-        self.results['guardrails_scores'] = self.run_guardrails_benchmarks(model)
-        self.results['domain_scores'] = self.run_domain_benchmarks(model)
-        self.results['cpu_performance'] = self.run_cpu_performance_benchmarks(model)
+        if self.config.quick_test:
+            # Quick test: Only run essential benchmarks with minimal samples
+            logger.info("Quick test mode: Running only essential benchmarks")
+            self.results['reasoning_scores'] = self.run_reasoning_benchmarks(model)
+            # Only run HumanEval for coding (skip MBPP, EvalPlus, MultiPL-E)
+            self.results['coding_scores'] = self.run_quick_coding_benchmarks(model)
+            self.results['math_scores'] = self.run_math_benchmarks(model)
+            # Skip language, edge, safety, long_context, fine_tuning, rag, function_calling, guardrails, domain, cpu_performance
+            self.results['language_scores'] = {}
+            self.results['edge_metrics'] = {}
+            self.results['safety_scores'] = {}
+            self.results['long_context_scores'] = {}
+            self.results['fine_tuning_metrics'] = {}
+            self.results['rag_scores'] = {}
+            self.results['function_calling_scores'] = {}
+            self.results['guardrails_scores'] = {}
+            self.results['domain_scores'] = {}
+            self.results['cpu_performance'] = {}
+        else:
+            # Full benchmark: Run all benchmarks
+            self.results['reasoning_scores'] = self.run_reasoning_benchmarks(model)
+            self.results['coding_scores'] = self.run_coding_benchmarks(model)
+            self.results['math_scores'] = self.run_math_benchmarks(model)
+            self.results['language_scores'] = self.run_language_benchmarks(model)
+            self.results['edge_metrics'] = self.run_edge_benchmarks(model)
+            self.results['safety_scores'] = self.run_safety_benchmarks(model)
+            self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
+            self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
+            
+            # New marketplace benchmarks
+            self.results['rag_scores'] = self.run_rag_benchmarks(model)
+            self.results['function_calling_scores'] = self.run_function_calling_benchmarks(model)
+            self.results['guardrails_scores'] = self.run_guardrails_benchmarks(model)
+            self.results['domain_scores'] = self.run_domain_benchmarks(model)
+            self.results['cpu_performance'] = self.run_cpu_performance_benchmarks(model)
         
         # Calculate aggregate
         aggregate_score = self.calculate_aggregate_score()
@@ -683,6 +730,7 @@ def main():
     parser.add_argument('--full-report', action='store_true')
     parser.add_argument('--enable-carbon-tracking', action='store_true', help='Enable energy consumption tracking')
     parser.add_argument('--limit', type=int, help='Limit number of samples per task for testing')
+    parser.add_argument('--quick-test', action='store_true', help='Quick test mode: run only essential benchmarks with minimal samples')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for inference')
     
     args = parser.parse_args()
@@ -704,6 +752,9 @@ def main():
         quantizations = [{'name': 'FP16'}]
 
     for quant_info in quantizations:
+        # For quick test, use smaller limit if not specified
+        quick_limit = args.limit or (10 if args.quick_test else None)
+        
         config = BenchmarkConfig(
             model_name=model_info.get('hf_repo', model_info.get('name', args.submission_file)),
             hf_repo=model_info.get('hf_repo'),
@@ -712,7 +763,8 @@ def main():
             tasks=model_info.get('categories', []),
             seed=args.seed,
             deterministic=args.deterministic,
-            limit=args.limit,
+            limit=quick_limit,
+            quick_test=args.quick_test,
             enable_carbon_tracking=args.enable_carbon_tracking,
             batch_size=args.batch_size
         )
