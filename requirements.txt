@@ -10,7 +10,7 @@ numpy
 pandas
 tqdm
 llama-cpp-python  # For GGUF support
-codecarbon==3.2.1
-fief-client>=0.18.0  # Pin to version that supports 'cli' extra to avoid warnings
+# codecarbon==3.2.1  # Optional: Conflicts with bfcl-eval due to httpx version requirements
+# Install separately if carbon tracking is needed: pip install codecarbon
 bfcl-eval==2025.12.17
 psutil
