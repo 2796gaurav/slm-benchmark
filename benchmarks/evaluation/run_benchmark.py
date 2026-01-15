@@ -78,6 +78,7 @@ class BenchmarkConfig:
         enable_carbon_tracking: Track energy consumption (default: False)
         limit: Limit samples per task for testing (default: None = no limit)
         quick_test: Quick test mode - run only essential tasks (default: False)
+        task_timeout: Timeout per task in seconds (default: 3600 = 1 hour)
     """
     model_name: str
     hf_repo: str
@@ -93,6 +94,7 @@ class BenchmarkConfig:
     enable_carbon_tracking: bool = False
     limit: int = None  # Limit number of samples per task
     quick_test: bool = False  # Quick test mode - run only essential tasks with minimal samples
+    task_timeout: int = 3600  # Timeout per task in seconds (1 hour default)
 
 
 @dataclass
@@ -127,6 +129,10 @@ class BenchmarkResult:
     environmental_metrics: Dict = None
     efficiency_score: float = 0.0
 
+
+class TimeoutError(Exception):
+    """Custom timeout exception"""
+    pass
 
 class SLMBenchmark:
     """Main benchmark orchestrator"""
@@ -262,6 +268,32 @@ class SLMBenchmark:
             logger.warning(f"Failed to load tokenizer: {e}")
             return None
     
+    def _run_with_timeout(self, func, timeout_seconds, task_name):
+        """Run a function with timeout"""
+        import threading
+        result = [None]
+        exception = [None]
+        
+        def target():
+            try:
+                result[0] = func()
+            except Exception as e:
+                exception[0] = e
+        
+        thread = threading.Thread(target=target)
+        thread.daemon = True
+        thread.start()
+        thread.join(timeout=timeout_seconds)
+        
+        if thread.is_alive():
+            logger.error(f"{task_name} timed out after {timeout_seconds} seconds")
+            return {'error': f'Timeout after {timeout_seconds}s', 'timed_out': True}
+        
+        if exception[0]:
+            raise exception[0]
+        
+        return result[0]
+    
     def run_reasoning_benchmarks(self, model) -> Dict:
         """Run reasoning benchmarks"""
         logger.info("Running reasoning benchmarks...")
@@ -273,8 +305,8 @@ class SLMBenchmark:
             'truthfulqa_mc2'
         ]
         
-        try:
-            results = evaluator.simple_evaluate(
+        def _run():
+            return evaluator.simple_evaluate(
                 model=model,
                 tasks=tasks,
                 num_fewshot=self.config.num_fewshot,
@@ -282,8 +314,14 @@ class SLMBenchmark:
                 device='cuda' if torch.cuda.is_available() else 'cpu',
                 limit=self.config.limit
             )
-            logger.info("Reasoning benchmarks completed")
-            return results['results']
+        
+        try:
+            results = self._run_with_timeout(_run, self.config.task_timeout, "Reasoning benchmarks")
+            if isinstance(results, dict) and 'results' in results:
+                logger.info("Reasoning benchmarks completed")
+                return results['results']
+            else:
+                return results
         except Exception as e:
             logger.error(f"Reasoning benchmarks failed: {e}")
             logger.warning("Returning empty results for reasoning")
@@ -329,17 +367,23 @@ class SLMBenchmark:
         # HumanEval (164 problems)
         try:
             logger.info("  Running HumanEval...")
-            humaneval_results = evaluator.simple_evaluate(
-                model=model,
-                tasks=['humaneval'],
-                num_fewshot=0,
-                batch_size=1,
-                device='cuda' if torch.cuda.is_available() else 'cpu',
-                limit=self.config.limit or 164,  # Full dataset
-                confirm_run_unsafe_code=True
-            )
-            results['humaneval'] = humaneval_results.get('results', {})
-            results['humaneval']['dataset_size'] = 164
+            def _run_humaneval():
+                return evaluator.simple_evaluate(
+                    model=model,
+                    tasks=['humaneval'],
+                    num_fewshot=0,
+                    batch_size=1,
+                    device='cuda' if torch.cuda.is_available() else 'cpu',
+                    limit=self.config.limit or 164,  # Full dataset
+                    confirm_run_unsafe_code=True
+                )
+            
+            humaneval_results = self._run_with_timeout(_run_humaneval, self.config.task_timeout, "HumanEval")
+            if isinstance(humaneval_results, dict) and 'results' in humaneval_results:
+                results['humaneval'] = humaneval_results.get('results', {})
+                results['humaneval']['dataset_size'] = 164
+            else:
+                results['humaneval'] = humaneval_results
         except Exception as e:
             logger.error(f"HumanEval failed: {e}")
             results['humaneval'] = {'error': str(e)}
@@ -347,18 +391,27 @@ class SLMBenchmark:
         # MBPP (974 problems)
         try:
             logger.info("  Running MBPP...")
-            mbpp_results = evaluator.simple_evaluate(
-                model=model,
-                tasks=['mbpp'],
-                num_fewshot=0,
-                batch_size=1,
-                device='cuda' if torch.cuda.is_available() else 'cpu',
-                limit=self.config.limit or 500,  # Sample from 974
-                confirm_run_unsafe_code=True
-            )
-            results['mbpp'] = mbpp_results.get('results', {})
-            results['mbpp']['dataset_size'] = 974
-            results['mbpp']['samples_tested'] = min(self.config.limit or 500, 974)
+            # Optimized: Use 200 instead of 500 for faster execution while maintaining representativeness
+            mbpp_limit = self.config.limit or 200
+            
+            def _run_mbpp():
+                return evaluator.simple_evaluate(
+                    model=model,
+                    tasks=['mbpp'],
+                    num_fewshot=0,
+                    batch_size=1,
+                    device='cuda' if torch.cuda.is_available() else 'cpu',
+                    limit=mbpp_limit,  # Optimized: 200 samples (was 500)
+                    confirm_run_unsafe_code=True
+                )
+            
+            mbpp_results = self._run_with_timeout(_run_mbpp, self.config.task_timeout, "MBPP")
+            if isinstance(mbpp_results, dict) and 'results' in mbpp_results:
+                results['mbpp'] = mbpp_results.get('results', {})
+                results['mbpp']['dataset_size'] = 974
+                results['mbpp']['samples_tested'] = min(mbpp_limit, 974)
+            else:
+                results['mbpp'] = mbpp_results
         except Exception as e:
             logger.error(f"MBPP failed: {e}")
             results['mbpp'] = {'error': str(e)}
@@ -366,39 +419,61 @@ class SLMBenchmark:
         # EvalPlus (Extended HumanEval)
         try:
             logger.info("  Running EvalPlus...")
-            evalplus_results = evaluator.simple_evaluate(
-                model=model,
-                tasks=['evalplus'],
-                num_fewshot=0,
-                batch_size=1,
-                device='cuda' if torch.cuda.is_available() else 'cpu',
-                limit=self.config.limit or 164,
-                confirm_run_unsafe_code=True
-            )
-            results['evalplus'] = evalplus_results.get('results', {})
-            results['evalplus']['dataset_size'] = 164
+            # Optimized: Use 100 instead of 164 for faster execution
+            evalplus_limit = self.config.limit or 100
+            
+            def _run_evalplus():
+                return evaluator.simple_evaluate(
+                    model=model,
+                    tasks=['evalplus'],
+                    num_fewshot=0,
+                    batch_size=1,
+                    device='cuda' if torch.cuda.is_available() else 'cpu',
+                    limit=evalplus_limit,  # Optimized: 100 samples (was 164)
+                    confirm_run_unsafe_code=True
+                )
+            
+            evalplus_results = self._run_with_timeout(_run_evalplus, self.config.task_timeout, "EvalPlus")
+            if isinstance(evalplus_results, dict) and 'results' in evalplus_results:
+                results['evalplus'] = evalplus_results.get('results', {})
+                results['evalplus']['dataset_size'] = 164
+                results['evalplus']['samples_tested'] = evalplus_limit
+            else:
+                results['evalplus'] = evalplus_results
         except Exception as e:
             logger.warning(f"EvalPlus not available: {e}")
-            results['evalplus'] = {'note': 'EvalPlus not available'}
+            results['evalplus'] = {'note': 'EvalPlus not available', 'error': str(e)}
         
         # MultiPL-E (19 languages)
         try:
             logger.info("  Running MultiPL-E...")
-            multipl_e_results = evaluator.simple_evaluate(
-                model=model,
-                tasks=['multipl_e'],
-                num_fewshot=0,
-                batch_size=1,
-                device='cuda' if torch.cuda.is_available() else 'cpu',
-                limit=self.config.limit or 100,  # Sample across languages
-                confirm_run_unsafe_code=True
-            )
-            results['multipl_e'] = multipl_e_results.get('results', {})
-            results['multipl_e']['languages'] = 19
-            results['multipl_e']['problems_per_language'] = 164
+            # Optimized: Use 20 per language instead of 100 to reduce from 1900 to 380 total samples
+            # This maintains language coverage while significantly reducing runtime
+            multipl_e_limit = self.config.limit or 20
+            
+            def _run_multipl_e():
+                return evaluator.simple_evaluate(
+                    model=model,
+                    tasks=['multipl_e'],
+                    num_fewshot=0,
+                    batch_size=1,
+                    device='cuda' if torch.cuda.is_available() else 'cpu',
+                    limit=multipl_e_limit,  # Optimized: 20 samples per language (was 100, total: 380 vs 1900)
+                    confirm_run_unsafe_code=True
+                )
+            
+            multipl_e_results = self._run_with_timeout(_run_multipl_e, self.config.task_timeout * 2, "MultiPL-E")  # 2x timeout for multi-language
+            if isinstance(multipl_e_results, dict) and 'results' in multipl_e_results:
+                results['multipl_e'] = multipl_e_results.get('results', {})
+                results['multipl_e']['languages'] = 19
+                results['multipl_e']['problems_per_language'] = 164
+                results['multipl_e']['samples_per_language'] = multipl_e_limit
+                results['multipl_e']['total_samples'] = multipl_e_limit * 19
+            else:
+                results['multipl_e'] = multipl_e_results
         except Exception as e:
             logger.warning(f"MultiPL-E not available: {e}")
-            results['multipl_e'] = {'note': 'MultiPL-E not available'}
+            results['multipl_e'] = {'note': 'MultiPL-E not available', 'error': str(e)}
         
         return results
     
@@ -408,8 +483,8 @@ class SLMBenchmark:
         
         tasks = ['gsm8k', 'math_qa']
         
-        try:
-            results = evaluator.simple_evaluate(
+        def _run():
+            return evaluator.simple_evaluate(
                 model=model,
                 tasks=tasks,
                 num_fewshot=self.config.num_fewshot,
@@ -417,7 +492,13 @@ class SLMBenchmark:
                 device='cuda' if torch.cuda.is_available() else 'cpu',
                 limit=self.config.limit
             )
-            return results['results']
+        
+        try:
+            results = self._run_with_timeout(_run, self.config.task_timeout, "Math benchmarks")
+            if isinstance(results, dict) and 'results' in results:
+                return results['results']
+            else:
+                return results
         except Exception as e:
             logger.error(f"Math benchmarks failed: {e}")
             return {}
@@ -432,8 +513,8 @@ class SLMBenchmark:
             'winogrande'
         ]
         
-        try:
-            results = evaluator.simple_evaluate(
+        def _run():
+            return evaluator.simple_evaluate(
                 model=model,
                 tasks=tasks,
                 num_fewshot=self.config.num_fewshot,
@@ -441,9 +522,15 @@ class SLMBenchmark:
                 device='cuda' if torch.cuda.is_available() else 'cpu',
                 limit=self.config.limit
             )
-            return results['results']
+        
+        try:
+            results = self._run_with_timeout(_run, self.config.task_timeout, "Language benchmarks")
+            if isinstance(results, dict) and 'results' in results:
+                return results['results']
+            else:
+                return results
         except Exception as e:
-            logger.error(f"Math benchmarks failed: {e}")
+            logger.error(f"Language benchmarks failed: {e}")
             return {}
     
     def run_edge_benchmarks(self, model) -> Dict:
@@ -616,13 +703,17 @@ class SLMBenchmark:
         logger.info(f"Starting benchmark for {self.config.model_name}")
         if self.config.quick_test:
             logger.info("QUICK TEST MODE: Running minimal subset of benchmarks")
+        else:
+            logger.info(f"FULL BENCHMARK MODE: Optimized limits - MBPP: 200, MultiPL-E: 20/lang, EvalPlus: 100")
         start_time = time.time()
         
         # Start carbon tracking
         self.carbon_tracker.start()
         
         # Load model
+        logger.info("Loading model...")
         model = self.load_model()
+        logger.info("Model loaded successfully")
         
         if self.config.quick_test:
             # Quick test: Only run essential benchmarks with minimal samples
@@ -643,22 +734,48 @@ class SLMBenchmark:
             self.results['domain_scores'] = {}
             self.results['cpu_performance'] = {}
         else:
-            # Full benchmark: Run all benchmarks
+            # Full benchmark: Run all benchmarks with progress tracking
+            logger.info("=" * 60)
+            logger.info("Starting full benchmark suite")
+            logger.info("=" * 60)
+            
+            logger.info("[1/10] Running reasoning benchmarks...")
             self.results['reasoning_scores'] = self.run_reasoning_benchmarks(model)
+            
+            logger.info("[2/10] Running coding benchmarks...")
             self.results['coding_scores'] = self.run_coding_benchmarks(model)
+            
+            logger.info("[3/10] Running math benchmarks...")
             self.results['math_scores'] = self.run_math_benchmarks(model)
+            
+            logger.info("[4/10] Running language benchmarks...")
             self.results['language_scores'] = self.run_language_benchmarks(model)
+            
+            logger.info("[5/10] Running edge benchmarks...")
             self.results['edge_metrics'] = self.run_edge_benchmarks(model)
+            
+            logger.info("[6/10] Running safety benchmarks...")
             self.results['safety_scores'] = self.run_safety_benchmarks(model)
+            
+            logger.info("[7/10] Running long context benchmarks...")
             self.results['long_context_scores'] = self.run_long_context_benchmarks(model)
+            
+            logger.info("[8/10] Running fine-tuning benchmarks...")
             self.results['fine_tuning_metrics'] = self.run_fine_tuning_benchmarks(self.config.model_name)
             
+            logger.info("[9/10] Running marketplace benchmarks (RAG, function calling, guardrails, domain)...")
             # New marketplace benchmarks
             self.results['rag_scores'] = self.run_rag_benchmarks(model)
             self.results['function_calling_scores'] = self.run_function_calling_benchmarks(model)
             self.results['guardrails_scores'] = self.run_guardrails_benchmarks(model)
             self.results['domain_scores'] = self.run_domain_benchmarks(model)
+            
+            logger.info("[10/10] Running CPU performance benchmarks...")
             self.results['cpu_performance'] = self.run_cpu_performance_benchmarks(model)
+            
+            logger.info("=" * 60)
+            logger.info("All benchmarks completed")
+            logger.info("=" * 60)
         
         # Calculate aggregate
         aggregate_score = self.calculate_aggregate_score()
@@ -731,6 +848,7 @@ def main():
     parser.add_argument('--enable-carbon-tracking', action='store_true', help='Enable energy consumption tracking')
     parser.add_argument('--limit', type=int, help='Limit number of samples per task for testing')
     parser.add_argument('--quick-test', action='store_true', help='Quick test mode: run only essential benchmarks with minimal samples')
+    parser.add_argument('--task-timeout', type=int, default=3600, help='Timeout per task in seconds (default: 3600 = 1 hour)')
     parser.add_argument('--batch-size', type=int, default=1, help='Batch size for inference')
     
     args = parser.parse_args()
@@ -765,6 +883,7 @@ def main():
             deterministic=args.deterministic,
             limit=quick_limit,
             quick_test=args.quick_test,
+            task_timeout=args.task_timeout,
             enable_carbon_tracking=args.enable_carbon_tracking,
             batch_size=args.batch_size
         )
