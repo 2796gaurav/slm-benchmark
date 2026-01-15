@@ -100,6 +100,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          # Install codecarbon without fief-client to avoid httpx conflict with bfcl-eval
+          pip install --no-deps codecarbon==3.2.1
       
       - name: Run quick benchmark
         run: |
@@ -160,7 +162,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install codecarbon  # Ensure it's installed (though added to requirements)
+          # Install codecarbon without fief-client to avoid httpx conflict with bfcl-eval
+          pip install --no-deps codecarbon==3.2.1
+          # Install codecarbon without fief-client to avoid httpx conflict with bfcl-eval
+          # fief-client is only needed for CLI, not for EmissionsTracker
+          pip install --no-deps codecarbon==3.2.1
 
       - name: Run full benchmark
         id: benchmark
